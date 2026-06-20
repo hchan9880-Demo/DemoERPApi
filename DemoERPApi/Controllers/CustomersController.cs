@@ -1,95 +1,7 @@
-﻿/*
- 
-using DemoERPApi.Models;
-using Microsoft.AspNetCore.Mvc;
-
-namespace DemoERPApi.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class CustomerController : ControllerBase
-{
-    [HttpGet]
-    public ActionResult<CustomerDto> GetCustomer()
-    {
-        return new CustomerDto
-        {
-            CustomerId = "C001",
-            FirstName = "John",
-            LastName = "Smith",
-            Email = "john.smith@example.com",
-            Phone = "555-1234"
-        };
-    }
-}
-
-*/
-/*
-
-using DemoERPApi.Models;
+﻿using DemoERPApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
-
-namespace DemoERPApi.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class CustomerController : ControllerBase
-{
-    private readonly IConfiguration _configuration;
-
-    public CustomerController(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
-    [HttpPost("sync")]
-    public IActionResult SyncCustomer(CustomerDto customer)
-    {
-        string connectionString =
-            _configuration.GetConnectionString("Default");
-
-        using SqlConnection connection =
-            new SqlConnection(connectionString);
-
-        using SqlCommand command =
-            new SqlCommand("usp_InsertCustomer", connection);
-
-        command.CommandType = CommandType.StoredProcedure;
-
-        command.Parameters.AddWithValue(
-            "@CRMCustomerID",
-            customer.CustomerId);
-
-        command.Parameters.AddWithValue(
-            "@FirstName",
-            customer.FirstName);
-
-        command.Parameters.AddWithValue(
-            "@LastName",
-            customer.LastName);
-
-        command.Parameters.AddWithValue(
-            "@Email",
-            customer.Email);
-
-        command.Parameters.AddWithValue(
-            "@Phone",
-            customer.Phone);
-
-        connection.Open();
-        command.ExecuteNonQuery();
-
-        return Ok("Synchronization Complete");
-    }
-}
-*/
-
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using DemoERPApi.Models;
 
 namespace DemoERPApi.Controllers;
 
@@ -105,16 +17,44 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("sync")]
-    public IActionResult SyncCustomer(CustomerDto customer)
+    public IActionResult SyncCustomer([FromBody] CustomerDto customer)
     {
-        using SqlConnection conn = new SqlConnection(_connectionString);
-
-        conn.Open();
-
-        return Ok(new
+        if (customer == null)
         {
-            Message = "Customer synced successfully",
-            Customer = customer
-        });
+            return BadRequest("Customer payload is null");
+        }
+
+        try
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+
+            using SqlCommand cmd = new SqlCommand("usp_InsertCustomer", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            // safer parameter handling (avoid null crashes)
+            cmd.Parameters.Add("@CRMCustomerID", SqlDbType.VarChar).Value = customer.CustomerId ?? "";
+            cmd.Parameters.Add("@FirstName", SqlDbType.VarChar).Value = customer.FirstName ?? "";
+            cmd.Parameters.Add("@LastName", SqlDbType.VarChar).Value = customer.LastName ?? "";
+            cmd.Parameters.Add("@Email", SqlDbType.VarChar).Value = customer.Email ?? "";
+            cmd.Parameters.Add("@Phone", SqlDbType.VarChar).Value = customer.Phone ?? "";
+
+            conn.Open();
+
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            return Ok(new
+            {
+                Message = "Customer synced successfully",
+                RowsAffected = rowsAffected
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Error = ex.Message,
+                Detail = ex.InnerException?.Message
+            });
+        }
     }
 }
