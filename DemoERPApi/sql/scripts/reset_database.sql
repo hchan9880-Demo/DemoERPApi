@@ -1,0 +1,2 @@
+DELETE FROM SyncLog;
+DELETE FROM Customer;

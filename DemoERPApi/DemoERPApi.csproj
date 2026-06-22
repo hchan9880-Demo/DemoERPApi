@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -12,7 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="NewFolder\" />
+    <Folder Include="docs\" />
+    <Folder Include="sql\scripts\" />
+    <Folder Include="sql\seed\" />
+    <Folder Include="sql\stored_procedures\" />
+    <Folder Include="sql\schema\" />
+    <Folder Include="src\DemoERPApi\" />
   </ItemGroup>
 
 </Project>
