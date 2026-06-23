@@ -1,0 +1,218 @@
+# DemoERP API Testing Release Notes
+
+## Overview
+
+This release includes JWT authentication and Customer API CRUD endpoints.
+
+Base URL:
+
+```
+https://localhost:7087
+```
+
+All Customer API endpoints require a valid JWT token.
+
+---
+
+## Prerequisites
+
+1. Start the DemoERP API from Visual Studio.
+2. Verify Swagger is available at:
+
+```
+https://localhost:7087/swagger
+```
+
+3. Install Postman Desktop.
+https://www.postman.com/downloads/?utm_source=chatgpt.com
+
+4. Accept the localhost SSL certificate if prompted.
+
+---
+
+## Login
+
+Request
+
+```
+POST
+https://localhost:7087/api/Auth/login
+```
+
+Headers
+
+```
+Content-Type: application/json
+```
+
+Body
+
+```json
+{
+    "username": "admin",
+    "password": "Password123"
+}
+```
+
+Expected Result
+
+* HTTP 200 OK
+* A JWT token is returned.
+
+Copy the token for use in the remaining requests.
+
+---
+
+## Customer API Authorization
+
+For all Customer requests, add the following Authorization header.
+
+```
+Authorization: Bearer <JWT Token>
+```
+
+---
+
+## Test 1 - Create Customer
+
+Request
+
+```
+POST
+/api/Customer/sync
+```
+
+Body
+
+```json
+{
+    "customerId": "CRM500",
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john@test.com",
+    "phone": "6041234567"
+}
+```
+
+Expected Result
+
+* HTTP 200 OK
+* Customer synced successfully
+
+---
+
+## Test 2 - Duplicate Customer
+
+Submit the same request again.
+
+Expected Result
+
+* HTTP 409 Conflict
+* Customer already exists
+
+---
+
+## Test 3 - Get Existing Customer
+
+Request
+
+```
+GET
+/api/Customer/CRM500
+```
+
+Expected Result
+
+* HTTP 200 OK
+* Customer information returned
+
+---
+
+## Test 4 - Get Unknown Customer
+
+Request
+
+```
+GET
+/api/Customer/CRM999999
+```
+
+Expected Result
+
+* HTTP 404 Not Found
+
+---
+
+## Test 5 - Update Customer
+
+Request
+
+```
+PUT
+/api/Customer/update
+```
+
+Body
+
+```json
+{
+    "customerId": "CRM500",
+    "firstName": "Johnny",
+    "lastName": "Smith",
+    "email": "johnny@test.com",
+    "phone": "6049998888"
+}
+```
+
+Expected Result
+
+* HTTP 200 OK
+* Customer updated successfully
+
+---
+
+## Test 6 - Delete Customer
+
+Request
+
+```
+DELETE
+/api/Customer/CRM500
+```
+
+Expected Result
+
+* HTTP 200 OK
+* Customer soft deleted successfully
+
+---
+
+## Validation Tests
+
+Verify the following validation rules.
+
+| Scenario             | Expected Result |
+| -------------------- | --------------- |
+| Missing CustomerId   | HTTP 400        |
+| Missing FirstName    | HTTP 400        |
+| Missing Email        | HTTP 400        |
+| Invalid Email Format | HTTP 400        |
+| Invalid Phone Number | HTTP 400        |
+| Invalid JSON         | HTTP 400        |
+| Unknown Customer     | HTTP 404        |
+| Duplicate Customer   | HTTP 409        |
+
+---
+
+## Test Completion
+
+Testing is complete when:
+
+* Login succeeds.
+* Create Customer succeeds.
+* Duplicate Customer returns HTTP 409.
+* Get Customer returns HTTP 200.
+* Update Customer returns HTTP 200.
+* Delete Customer returns HTTP 200.
+* Validation tests return the expected HTTP status codes.
+* No unexpected HTTP 500 Internal Server Errors are encountered.

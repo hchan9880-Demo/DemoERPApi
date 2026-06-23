@@ -14,8 +14,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="docs\" />
-		<Folder Include="sql\scripts\" />
 		<Folder Include="sql\seed\" />
 		<Folder Include="sql\stored_procedures\" />
 		<Folder Include="src\DemoERPApi\" />

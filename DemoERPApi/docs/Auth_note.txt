@@ -1,0 +1,34 @@
+
+Refresh Tokens
+
+Current JWT:
+
+expires in 60 minutes
+
+Production systems usually have:
+
+Access Token
+Refresh Token
+
+
+
+
+Role-Based Authorization
+
+Currently:
+
+[Authorize]
+
+Better:
+
+[Authorize(Roles="Admin")]
+
+or
+
+[Authorize(Roles="Admin,Manager")]
+
+and add Role claim:
+
+new Claim(ClaimTypes.Role, "Admin")
+
+inside JWT generation.

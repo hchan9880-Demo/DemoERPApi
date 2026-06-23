@@ -1,0 +1,34 @@
+Users
+-----
+UserId (PK)
+Username
+PasswordHash
+Role
+
+Customer
+--------
+CustomerID (PK)
+CRMCustomerID
+FirstName
+LastName
+Email
+Phone
+IsDeleted
+
+SyncLog
+-------
+LogId (PK)
+CRMCustomerID
+Status
+Message
+CreatedDate
+
+
+
+Visual:
+
+Users
+  |
+  | authenticates
+  |
+Customer ---- SyncLog

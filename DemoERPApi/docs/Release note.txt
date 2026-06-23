@@ -1,0 +1,13 @@
+
+If I were scoring this project today
+Area	Score
+API Design	9/10
+Validation	9/10
+SQL Integration	9/10
+Testing	8/10
+JWT Security	8/10
+User Management	4/10
+Role-Based Auth	3/10
+Documentation	8/10
+
+Overall: ~8.5/10 demo project, which is already strong enough for many QA Automation, SDET, Systems Analyst, and Developer interview demonstrations. The next highest-value improvement would be replacing the hardcoded login with a Users table and password hashing.

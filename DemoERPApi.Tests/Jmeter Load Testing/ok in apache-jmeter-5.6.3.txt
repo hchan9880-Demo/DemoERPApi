@@ -1,0 +1,20 @@
+Use Apache JMeter 5.6.3 with Java 17.
+Base URL: https://localhost:7087
+Configure Authorization header:
+Bearer <JWT>
+Endpoints:
+/api/Auth/login
+/api/Customer/sync
+/api/Customer/{crmId}
+/api/Customer/update
+
+
+JMeter project containing:
+
+automatic JWT login
+all 25+ API test cases
+response assertions
+CSV data sets
+listeners
+reports
+proper controller hierarchy

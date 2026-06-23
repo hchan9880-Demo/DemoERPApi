@@ -1,0 +1,13 @@
+| Area                | Covered |
+| ------------------- | ------- |
+| Authentication      | Yes     |
+| Authorization       | Yes     |
+| GET Customer        | Yes     |
+| POST Customer       | Yes     |
+| PUT Customer        | Yes     |
+| DELETE Customer     | Yes     |
+| Validation          | Yes     |
+| Duplicate Detection | Yes     |
+| Invalid Email       | Yes     |
+| Invalid Phone       | Yes     |
+| Missing CustomerId  | Yes     |

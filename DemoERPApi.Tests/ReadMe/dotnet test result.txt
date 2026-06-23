@@ -1,0 +1,95 @@
+
+**********************************************************************
+** Visual Studio 2026 Developer PowerShell v18.8.0-insiders
+** Copyright (c) 2026 Microsoft Corporation
+**********************************************************************
+PS C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests> dotnet test --collect:"XPlat Code Coverage"
+Restore complete (0.6s)
+  DemoERPApi net10.0 succeeded with 6 warning(s) (4.1s) → C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\bin\Debug\net10.0\DemoERPApi.dll
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\Controllers\AuthController.cs(45,40): warning CS8604: Possible null reference argument for parameter 's' in 'byte[] Encoding.GetBytes(string s)'.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\Controllers\CustomersController.cs(319,21): warning CS8601: Possible null reference assignment.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\Controllers\CustomersController.cs(322,21): warning CS8601: Possible null reference assignment.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\Controllers\CustomersController.cs(325,21): warning CS8601: Possible null reference assignment.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\Controllers\CustomersController.cs(328,21): warning CS8601: Possible null reference assignment.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\Controllers\CustomersController.cs(331,21): warning CS8601: Possible null reference assignment.
+  DemoERPApi.Tests net10.0 succeeded with 6 warning(s) (2.2s) → bin\Debug\net10.0\DemoERPApi.Tests.dll
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(150,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(233,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(438,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(493,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(584,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(639,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.55]   Discovering: DemoERPApi.Tests
+[xUnit.net 00:00:00.60]   Discovered:  DemoERPApi.Tests
+[xUnit.net 00:00:00.62]   Starting:    DemoERPApi.Tests
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+info: Microsoft.Hosting.Lifetime[0]
+[xUnit.net 00:00:02.25]     DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists [FAIL]
+      Application is shutting down...
+[xUnit.net 00:00:02.25]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:02.25]       Expected: OK
+[xUnit.net 00:00:02.25]       Actual:   Conflict
+[xUnit.net 00:00:02.25]       Stack Trace:
+[xUnit.net 00:00:02.25]         C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(105,0): at DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists()
+[xUnit.net 00:00:02.25]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:02.26]   Finished:    DemoERPApi.Tests
+  DemoERPApi.Tests test net10.0 failed with 1 error(s) and 2 warning(s) (3.7s)
+    C:\Program Files\dotnet\sdk\10.0.301\Microsoft.TestPlatform.targets(48,5): warning Data collection : Unable to find a datacollector with friendly name 'XPlat Code Coverage'.
+    C:\Program Files\dotnet\sdk\10.0.301\Microsoft.TestPlatform.targets(48,5): warning Data collection : Could not find data collector 'XPlat Code Coverage'
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(105): error TESTERROR:
+      DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists (5ms): Error Message: Assert.Equal() Failure: Values differ
+      Expected: OK
+      Actual:   Conflict
+      Stack Trace:
+         at DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists() in C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTes
+      ts.cs:line 105
+      --- End of stack trace from previous location ---
+
+Test summary: total: 24, failed: 1, succeeded: 23, skipped: 0, duration: 3.7s
+Build failed with 1 error(s) and 14 warning(s) in 11.3s
+PS C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests> dotnet test
+Restore complete (0.5s)
+  DemoERPApi net10.0 succeeded (0.5s) → C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\bin\Debug\net10.0\DemoERPApi.dll
+  DemoERPApi.Tests net10.0 succeeded (0.2s) → bin\Debug\net10.0\DemoERPApi.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.08]   Discovering: DemoERPApi.Tests
+[xUnit.net 00:00:00.13]   Discovered:  DemoERPApi.Tests
+[xUnit.net 00:00:00.15]   Starting:    DemoERPApi.Tests
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[xUnit.net 00:00:00.87]     DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists [FAIL]
+[xUnit.net 00:00:00.88]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.88]       Expected: OK
+[xUnit.net 00:00:00.88]       Actual:   Conflict
+[xUnit.net 00:00:00.88]       Stack Trace:
+[xUnit.net 00:00:00.88]         C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(105,0): at DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists()
+[xUnit.net 00:00:00.88]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.88]   Finished:    DemoERPApi.Tests
+  DemoERPApi.Tests test net10.0 failed with 1 error(s) (1.6s)
+    C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTests.cs(105): error TESTERROR:
+      DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists (14ms): Error Message: Assert.Equal() Failure: Values differ
+      Expected: OK
+      Actual:   Conflict
+      Stack Trace:
+         at DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists() in C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\Integration\CustomerControllerTes
+      ts.cs:line 105
+      --- End of stack trace from previous location ---
+
+Test summary: total: 24, failed: 1, succeeded: 23, skipped: 0, duration: 1.5s
+Build failed with 1 error(s) in 3.4s
