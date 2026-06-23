@@ -20,4 +20,8 @@
 		<ProjectReference Include="..\DemoERPApi\DemoERPApi.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Jmeter Load Testing\" />
+	</ItemGroup>
+
 </Project>

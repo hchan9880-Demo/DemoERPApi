@@ -1,0 +1,7 @@
+CREATE TABLE Users
+(
+    UserId INT IDENTITY PRIMARY KEY,
+    Username VARCHAR(50) UNIQUE,
+    PasswordHash VARCHAR(255),
+    Role VARCHAR(20)
+);

@@ -33,11 +33,54 @@ Bad CRM number → NOT FOUND (404)
 Null CRM number → BAD REQUEST (400)
 
 
+Sample test result:
+  Tests in group: 24
+   Total Duration: 906 ms
+
+Outcomes
+   23 Passed
+   1 Failed
 
 
+Test	Duration	Traits	Error Message
+DemoERPApi.Tests.Integration.CustomerControllerTests.DeleteCustomer_ReturnsBadRequest_WhenCrmIsNull Passed	4 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.DeleteCustomer_ReturnsNotFound_WhenCrmDoesNotExist Passed	5 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.DeleteCustomer_ReturnsOk_WhenCrmExists Passed	6 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.GetCustomer_ReturnsBadRequest_WhenCrmIsNull Passed	2 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.GetCustomer_ReturnsNotFound_WhenCrmDoesNotExist Passed	9 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.GetCustomer_ReturnsOk_WhenCrmExists Passed	12 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsBadRequest_WhenCrmIsNull Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsBadRequest_WhenEmailIsNull Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsBadRequest_WhenJsonIsInvalid Passed	5 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsBadRequest_WhenPhoneIsInvalid Passed	18 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsNotFound_WhenCrmDoesNotExist Passed	2 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists Failed	6 ms		Assert.Equal() Failure: Values differ Expected: OK Actual:   Conflict
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenEmailAndPhoneAreValid Passed	756 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenPhoneIsNull Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsBadRequest_WhenCrmIsNull Passed	33 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsBadRequest_WhenCustomerIdMissing Passed	5 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsBadRequest_WhenEmailIsNull Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsBadRequest_WhenPhoneIsInvalid Passed	4 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsNotFound_WhenCrmDoesNotExist Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsOk_WhenCrmExists Passed	3 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsOk_WhenEmailAndPhoneAreValid Passed	12 ms		
+DemoERPApi.Tests.Integration.CustomerControllerTests.UpdateCustomer_ReturnsOk_WhenPhoneIsNull Passed	3 ms		
 
+--- created to show unhappy path
+ DemoERPApi.Tests.Integration.CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists
+   Source: CustomerControllerTests.cs line 83
+   Duration: 6 ms
 
+  Message: 
+Assert.Equal() Failure: Values differ
+Expected: OK
+Actual:   Conflict
 
+  Stack Trace: 
+CustomerControllerTests.SyncCustomer_ReturnsOk_WhenCrmExists() line 105
+--- End of stack trace from previous location
 
 
 

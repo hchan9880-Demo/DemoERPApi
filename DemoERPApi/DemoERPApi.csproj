@@ -18,7 +18,6 @@
 		<Folder Include="sql\scripts\" />
 		<Folder Include="sql\seed\" />
 		<Folder Include="sql\stored_procedures\" />
-		<Folder Include="sql\schema\" />
 		<Folder Include="src\DemoERPApi\" />
 	</ItemGroup>
 
