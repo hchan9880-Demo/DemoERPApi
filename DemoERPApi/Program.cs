@@ -1,5 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
-
+// services
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -19,4 +19,7 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
+// middleware
 app.Run();
+
+public partial class Program { }

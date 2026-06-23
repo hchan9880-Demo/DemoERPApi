@@ -1,0 +1,62 @@
+Settings:
+
+dotnet add package xunit
+dotnet add package xunit.runner.visualstudio
+dotnet add package Moq
+dotnet add package Microsoft.NET.Test.Sdk
+dotnet restore
+
+
+
+dotnet remove package Microsoft.Data.SqlClient
+dotnet add package Microsoft.Data.SqlClient --version 5.2.0
+dotnet restore
+
+
+
+
+Demo test data:
+TRUNCATE TABLE Customer;
+
+{
+ "customerId": "CRM100",
+ "firstName": "John",
+ "lastName": "Smith",
+ "email": "john@email.com",
+ "phone": "6041234567"
+}
+{
+  "customerId": "CRM101",
+  "firstName": "Alice",
+  "lastName": "Brown",
+  "email": "alice@email.com",
+  "phone": "7785552222"
+}
+{
+ "customerId": "CRM102",
+ "firstName": "Michael",
+ "lastName": "Johnson",
+ "email": "michael.johnson@email.com",
+ "phone": "6049998888"
+}
+{
+  "customerId": "CRM103",
+  "firstName": "David",
+  "lastName": "Wilson",
+  "email": "david.wilson@email.com",
+  "phone": "7785553333"
+}
+
+Main test script purpose:
+
+test file into a proper 3-scenario test suite (SUCCESS + NOT FOUND + BAD REQUEST) using your real working data (CRM100).
+
+
+
+cd C:\Users\KingBoo\source\repos\DemoERPApi
+
+dotnet new xunit -n DemoERPApi.Tests
+
+dotnet sln add .\DemoERPApi.Tests\DemoERPApi.Tests.csproj
+
+dotnet sln list
