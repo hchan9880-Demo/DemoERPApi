@@ -2,6 +2,53 @@ CustomerController Test Summary (Release Notes)
 
 This test suite validates the core behavior of the CustomerController in the DemoERPApi project, covering both success and failure scenarios for customer-related API operations.
 
+
+GET:
+  CRM100       -> OK
+  CRM999999    -> NOT FOUND
+  null         -> BAD REQUEST
+
+SYNC:
+  CRM102       -> OK
+  CRM999999    -> NOT FOUND
+  null         -> BAD REQUEST
+
+UPDATE:
+  CRM102       -> OK
+  CRM999999    -> NOT FOUND
+  null         -> BAD REQUEST
+
+DELETE:
+  CRM102       -> OK
+  CRM999999    -> NOT FOUND
+  null         -> BAD REQUEST
+
+
+Summary:
+
+For each endpoints (GET, sync, update, delete) you want:
+
+Good CRM number → SUCCESS (200)
+Bad CRM number → NOT FOUND (404)
+Null CRM number → BAD REQUEST (400)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Long version examples:
+
+
 Tested Scenarios
 GET Customer – Success
 Test: GetCustomer_ReturnsOk_WhenCustomerExists

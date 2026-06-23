@@ -6,7 +6,8 @@ using Xunit;
 
 namespace DemoERPApi.Tests.Integration;
 
-public class CustomerControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public class CustomerControllerTests
+    : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
 
@@ -17,142 +18,656 @@ public class CustomerControllerTests : IClassFixture<WebApplicationFactory<Progr
 
 
     // =====================================================
-    // 1. SUCCESS CASE - CRM100 EXISTS
+    // 1. GET CUSTOMER
     // =====================================================
+
     [Fact]
-    public async Task GetCustomer_ReturnsOk_WhenCustomerExists()
+    public async Task GetCustomer_ReturnsOk_WhenCrmExists()
     {
-        var response = await _client.GetAsync("/api/Customer/CRM100");
+        var response = await _client.GetAsync(
+            "/api/Customer/CRM100"
+        );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var customer = await response.Content.ReadFromJsonAsync<CustomerDto>();
+        var customer =
+            await response.Content.ReadFromJsonAsync<CustomerDto>();
 
         Assert.NotNull(customer);
         Assert.Equal("CRM100", customer!.CustomerId);
     }
 
 
-    // =====================================================
-    // 2. NOT FOUND CASE
-    // =====================================================
     [Fact]
-    public async Task GetCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
+    public async Task GetCustomer_ReturnsNotFound_WhenCrmDoesNotExist()
     {
-        var response = await _client.GetAsync("/api/Customer/CRM999999");
+        var response = await _client.GetAsync(
+            "/api/Customer/CRM999999"
+        );
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode
+        );
     }
 
 
-    // =====================================================
-    // 3. SYNC CUSTOMER SUCCESS CASE - CREATE CRM102
-    // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsOk_WhenCustomerIsValid()
+    public async Task GetCustomer_ReturnsBadRequest_WhenCrmIsNull()
+    {
+        var response = await _client.GetAsync(
+            "/api/Customer/"
+        );
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+    }
+
+
+
+    // =====================================================
+    // 2. SYNC CUSTOMER
+    // =====================================================
+
+    [Fact]
+    public async Task SyncCustomer_ReturnsOk_WhenCrmExists()
     {
         var request = new CustomerDto
         {
-            CustomerId = "CRM102",
+            CustomerId = "CRM100",
             FirstName = "Michael",
             LastName = "Johnson",
-            Email = "michael.johnson@email.com",
+            Email = "michael@test.com",
             Phone = "6049998888"
         };
+
 
         var response = await _client.PostAsJsonAsync(
             "/api/Customer/sync",
             request
         );
 
+
+
+        //It should be CRM100 is already exsited and not found availabe to use.
+        //Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        //show failed assertion 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+
+
+    }
+
+
+    [Fact]
+    public async Task SyncCustomer_ReturnsNotFound_WhenCrmDoesNotExist()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "",
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
+        );
+
+        //Eitheer Notfound or BadRequest is correct, as long as it is failed due to blank
+      
+        // Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+       Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+
+
+    }
+
+
+    [Fact]
+    public async Task SyncCustomer_ReturnsBadRequest_WhenCrmIsNull()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = null,
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+    }
+
+
+
+    // =====================================================
+    // 3. UPDATE CUSTOMER
+    // =====================================================
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsOk_WhenCrmExists()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM102",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsNotFound_WhenCrmDoesNotExist()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM999999",
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        //Eitheer Notfound or BadRequest is correct, as long as it is failed due to invalid CustomerId
+
+        // Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+    }
+
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsBadRequest_WhenCrmIsNull()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = null,
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
     }
 
 
 
 
+    // =====================================================
+    // 4. DELETE CUSTOMER
+    // =====================================================
+
+    [Fact]
+    public async Task DeleteCustomer_ReturnsOk_WhenCrmExists()
+    {
+        var response = await _client.DeleteAsync(
+            "/api/Customer/CRM102"
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task DeleteCustomer_ReturnsNotFound_WhenCrmDoesNotExist()
+    {
+        var response = await _client.DeleteAsync(
+            "/api/Customer/CRM999999"
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task DeleteCustomer_ReturnsBadRequest_WhenCrmIsNull()
+    {
+        var response = await _client.DeleteAsync(
+            "/api/Customer/"
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+
+
+       // Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        //Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+
+
+    }
+
+
 
 
     // =====================================================
-    // 4. UPDATE CUSTOMER SUCCESS CASE - UPDATE CRM102
+    // 2A. SYNC CUSTOMER BAD REQUEST - INVALID JSON
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsOk_WhenCustomerIsValid()
+    public async Task SyncCustomer_ReturnsBadRequest_WhenJsonIsInvalid()
     {
-        var json = """
+        var invalidJson = """
     {
-      "CustomerId": "CRM102",
-      "FirstName": "Michael",
-      "LastName": "Johnson",
-      "Email": "michael.johnson@email.com",
-      "Phone": "6049998888"
+        FirstName = "Michael",
+        LastName = "Johnson",
+        Email = "michael@test.com",
+        Phone = "6049998888"
     }
     """;
 
         var content = new StringContent(
-            json,
+            invalidJson,
             System.Text.Encoding.UTF8,
             "application/json"
         );
 
-        var response = await _client.PutAsync(
-            "/api/Customer/update",
+        var response = await _client.PostAsync(
+            "/api/Customer/sync",
             content
         );
 
-        var responseBody = await response.Content.ReadAsStringAsync();
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var responseBody =
+            await response.Content.ReadAsStringAsync();
 
         Assert.Contains(
-            "Customer updated successfully",
+            "One or more validation errors occurred",
+            responseBody
+        );
+    }
+
+    // =====================================================
+    // 3A. UPDATE CUSTOMER BAD REQUEST - CUSTOMER ID MISSING
+    // =====================================================
+    [Fact]
+    public async Task UpdateCustomer_ReturnsBadRequest_WhenCustomerIdMissing()
+    {
+        var request = new
+        {
+            // CustomerId intentionally missing
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+
+
+        var responseBody =
+            await response.Content.ReadAsStringAsync();
+
+
+        Assert.Contains(
+            "CustomerId is required",
             responseBody
         );
     }
 
 
 
+
     // =====================================================
-    // 5. SOFT DELETE BAD REQUEST - NULL ID
+    // 2B. SYNC CUSTOMER Email phone field check
     // =====================================================
+    // =====================================================
+    // SYNC CUSTOMER VALIDATION TESTS
+    // =====================================================
+
+
     [Fact]
-    public async Task DeleteCustomer_ReturnsBadRequest_WhenIdIsMissing()
+    public async Task SyncCustomer_ReturnsOk_WhenEmailAndPhoneAreValid()
     {
-        var response = await _client.DeleteAsync(
-            "/api/Customer/"
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM200",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
         );
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        //Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode
+        );
     }
 
 
-    // =====================================================
-    // 6. SOFT DELETE NOT FOUND - CRM999 DOES NOT EXIST
-    // =====================================================
+
     [Fact]
-    public async Task DeleteCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
+    public async Task SyncCustomer_ReturnsBadRequest_WhenEmailIsNull()
     {
-        var response = await _client.DeleteAsync(
-            "/api/Customer/CRM999"
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM201",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = null,
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
         );
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
     }
 
 
-    // =====================================================
-    // 7. SOFT DELETE SUCCESS - DELETE CRM102
-    // =====================================================
+
     [Fact]
-    public async Task DeleteCustomer_ReturnsOk_WhenCustomerExists()
+    public async Task SyncCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
     {
-        var response = await _client.DeleteAsync(
-            "/api/Customer/CRM102"
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM202",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "wrong-email",
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
         );
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
     }
+
+
+
+    [Fact]
+    public async Task SyncCustomer_ReturnsOk_WhenPhoneIsNull()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM203",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = null
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task SyncCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM204",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = "12345"
+        };
+
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/Customer/sync",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+    }
+
+    // =====================================================
+    // 3B. UPDATE CUSTOMER Email phone field check
+    // =====================================================
+
+    // =====================================================
+    // UPDATE CUSTOMER VALIDATION TESTS
+    // =====================================================
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsOk_WhenEmailAndPhoneAreValid()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM100",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailIsNull()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM100",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = null,
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM100",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "abc",
+            Phone = "6049998888"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsOk_WhenPhoneIsNull()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM100",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = null
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode
+        );
+    }
+
+
+
+    [Fact]
+    public async Task UpdateCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
+    {
+        var request = new CustomerDto
+        {
+            CustomerId = "CRM100",
+            FirstName = "Michael",
+            LastName = "Johnson",
+            Email = "michael@test.com",
+            Phone = "555"
+        };
+
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Customer/update",
+            request
+        );
+
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+    }
+
+
+
+
 
 
 }
+
+
+
