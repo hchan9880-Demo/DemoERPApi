@@ -26,11 +26,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Text.RegularExpressions;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace DemoERPApi.Controllers;
 
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CustomerController : ControllerBase
@@ -406,7 +407,13 @@ public class CustomerController : ControllerBase
         }
 
 
-
+        if (string.IsNullOrWhiteSpace(customer.FirstName))
+        {
+            return BadRequest(new
+            {
+                Message = "FirstName is required"
+            });
+        }
 
         try
         {

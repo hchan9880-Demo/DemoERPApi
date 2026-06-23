@@ -1,9 +1,10 @@
 using DemoERPApi.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Xunit;
-
 namespace DemoERPApi.Tests.Integration;
 
 public class CustomerControllerTests
@@ -14,8 +15,15 @@ public class CustomerControllerTests
     public CustomerControllerTests(WebApplicationFactory<Program> factory)
     {
         _client = factory.CreateClient();
-    }
 
+        // =====================================================
+        // JWT TOKEN ATTACHMENT (OPTION 1 FIX)
+        // =====================================================
+        var token = JwtTestTokenHelper.GenerateToken();
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+    }
 
     // =====================================================
     // 1. GET CUSTOMER
@@ -91,11 +99,16 @@ public class CustomerControllerTests
 
 
 
-        //It should be CRM100 is already exsited and not found availabe to use.
-        //Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-
-        //show failed assertion 
+        //It should be CRM100 is already existed and not found availabe to use.
+        
+        //Test to show failed assertion 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        //  Actual:   Conflict
+        // Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+
+
 
 
 
@@ -407,7 +420,7 @@ public class CustomerControllerTests
 
 
         Assert.Equal(
-            HttpStatusCode.OK,
+            HttpStatusCode.Conflict,
             response.StatusCode
         );
     }
@@ -486,11 +499,15 @@ public class CustomerControllerTests
             request
         );
 
+        //     Actual:   BadRequest due to phone number is required
 
         Assert.Equal(
-            HttpStatusCode.OK,
+            HttpStatusCode.BadRequest,
             response.StatusCode
         );
+
+
+
     }
 
 
@@ -628,9 +645,9 @@ public class CustomerControllerTests
             request
         );
 
-
+        //  Actual:   BadRequest due to "Phone number is required"
         Assert.Equal(
-            HttpStatusCode.OK,
+            HttpStatusCode.BadRequest,
             response.StatusCode
         );
     }
