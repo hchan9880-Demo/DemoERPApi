@@ -1,0 +1,44 @@
+CustomerController Test Summary (Release Notes)
+
+This test suite validates the core behavior of the CustomerController in the DemoERPApi project, covering both success and failure scenarios for customer-related API operations.
+
+Tested Scenarios
+GET Customer – Success
+Test: GetCustomer_ReturnsOk_WhenCustomerExists
+Input: CRM100
+Expected: HTTP 200 OK with a valid CustomerDto
+Purpose: Confirms successful retrieval of an existing customer from the database.
+GET Customer – Not Found
+Test: GetCustomer_ReturnsNotFound_WhenCustomerDoesNotExist
+Input: CRM999999
+Expected: HTTP 404 Not Found with error response
+Purpose: Ensures proper handling of non-existent customer IDs.
+POST Sync Customer – Validation Failure
+Test: SyncCustomer_ReturnsBadRequest_WhenCustomerIsNull
+Input: null
+Expected: HTTP 400 Bad Request
+Purpose: Validates required request body input handling.
+PUT Update Customer – Validation Failure
+Test: UpdateCustomer_ReturnsBadRequest_WhenInvalid
+Input: null
+Expected: HTTP 400 Bad Request
+Purpose: Ensures invalid update requests are rejected.
+Coverage Summary
+Successful data retrieval (HTTP 200 OK)
+Proper error handling for missing data (HTTP 404 Not Found)
+Input validation enforcement (HTTP 400 Bad Request)
+Consistent API behavior across endpoints
+Test Type
+
+Integration-style controller tests:
+
+Uses real SQL database connections
+No mocking of service layer
+Executes against actual data layer
+Key Outcome
+
+Demonstrates real-world API behavior validation across:
+
+Valid requests
+Missing data scenarios
+Invalid input handling

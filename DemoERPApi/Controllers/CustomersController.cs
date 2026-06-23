@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
-
+using Microsoft.Extensions.Configuration;
 namespace DemoERPApi.Controllers;
 
 [ApiController]
@@ -13,7 +13,8 @@ public class CustomerController : ControllerBase
 
     public CustomerController(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("DemoERPConnection");
+        _connectionString = configuration.GetConnectionString("DemoERPConnection")
+            ?? throw new InvalidOperationException("DemoERPConnection is missing in appsettings.json");
     }
 
     // =====================================================
@@ -50,18 +51,18 @@ public class CustomerController : ControllerBase
                 RowsAffected = rowsAffected
             });
         }
+        catch (SqlException ex)
+        {
+            return StatusCode(500, new { Message = "Database error", Error = ex.Message });
+        }
         catch (Exception ex)
         {
-            return StatusCode(500, new
-            {
-                Error = ex.Message,
-                Detail = ex.InnerException?.Message
-            });
+            return StatusCode(500, new { Error = ex.Message });
         }
     }
 
     // =====================================================
-    // NEW: GET CUSTOMER BY ID
+    // GET CUSTOMER BY ID (FIXED)
     // =====================================================
     [HttpGet("{crmId}")]
     public IActionResult GetCustomer(string crmId)
@@ -83,16 +84,22 @@ public class CustomerController : ControllerBase
             using SqlDataReader reader = cmd.ExecuteReader();
 
             if (!reader.Read())
+            {
                 return NotFound(new { Message = "Customer not found" });
+            }
 
             return Ok(new CustomerDto
             {
-                CustomerId = reader["CRMCustomerID"].ToString(),
-                FirstName = reader["FirstName"].ToString(),
-                LastName = reader["LastName"].ToString(),
-                Email = reader["Email"].ToString(),
-                Phone = reader["Phone"].ToString()
+                CustomerId = reader["CRMCustomerID"]?.ToString(),
+                FirstName = reader["FirstName"]?.ToString(),
+                LastName = reader["LastName"]?.ToString(),
+                Email = reader["Email"]?.ToString(),
+                Phone = reader["Phone"]?.ToString()
             });
+        }
+        catch (SqlException ex)
+        {
+            return StatusCode(500, new { Message = "Database error", Error = ex.Message });
         }
         catch (Exception ex)
         {
@@ -101,12 +108,12 @@ public class CustomerController : ControllerBase
     }
 
     // =====================================================
-    // NEW: UPDATE CUSTOMER
+    // UPDATE CUSTOMER (FIXED)
     // =====================================================
     [HttpPut("update")]
     public IActionResult UpdateCustomer([FromBody] CustomerDto customer)
     {
-        if (customer == null || string.IsNullOrEmpty(customer.CustomerId))
+        if (customer == null || string.IsNullOrWhiteSpace(customer.CustomerId))
             return BadRequest("Invalid customer data");
 
         try
@@ -124,10 +131,10 @@ public class CustomerController : ControllerBase
             using SqlCommand cmd = new SqlCommand(sql, conn);
 
             cmd.Parameters.AddWithValue("@CRMCustomerID", customer.CustomerId);
-            cmd.Parameters.AddWithValue("@FirstName", customer.FirstName);
-            cmd.Parameters.AddWithValue("@LastName", customer.LastName);
-            cmd.Parameters.AddWithValue("@Email", customer.Email);
-            cmd.Parameters.AddWithValue("@Phone", customer.Phone);
+            cmd.Parameters.AddWithValue("@FirstName", customer.FirstName ?? "");
+            cmd.Parameters.AddWithValue("@LastName", customer.LastName ?? "");
+            cmd.Parameters.AddWithValue("@Email", customer.Email ?? "");
+            cmd.Parameters.AddWithValue("@Phone", customer.Phone ?? "");
 
             conn.Open();
 
@@ -138,6 +145,10 @@ public class CustomerController : ControllerBase
 
             return Ok(new { Message = "Customer updated successfully" });
         }
+        catch (SqlException ex)
+        {
+            return StatusCode(500, new { Message = "Database error", Error = ex.Message });
+        }
         catch (Exception ex)
         {
             return StatusCode(500, new { Error = ex.Message });
@@ -145,7 +156,7 @@ public class CustomerController : ControllerBase
     }
 
     // =====================================================
-    // NEW: SOFT DELETE CUSTOMER
+    // SOFT DELETE CUSTOMER (FIXED)
     // =====================================================
     [HttpDelete("{crmId}")]
     public IActionResult DeleteCustomer(string crmId)
@@ -170,6 +181,10 @@ public class CustomerController : ControllerBase
                 return NotFound(new { Message = "Customer not found" });
 
             return Ok(new { Message = "Customer soft deleted successfully" });
+        }
+        catch (SqlException ex)
+        {
+            return StatusCode(500, new { Message = "Database error", Error = ex.Message });
         }
         catch (Exception ex)
         {
