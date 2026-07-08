@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DemoERPApi.Data;
+using DemoERPApi.Models;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using DemoERPApi.Models;
 
 namespace DemoERPApi.Controllers;
 
@@ -12,57 +16,106 @@ namespace DemoERPApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
+    private readonly AppDbContext _context;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(AppDbContext context, IConfiguration configuration)
     {
+        _context = context;
         _configuration = configuration;
     }
 
-    [HttpPost("login")]
-    public IActionResult Login(LoginRequest request)
+    // =========================
+    // REGISTER
+    // =========================
+    [HttpPost("register")]
+    public IActionResult Register(RegisterRequest request)
     {
-        if (request.Username != "admin" ||
-            request.Password != "Password123")
+        var existingUser = _context.Users
+            .FirstOrDefault(u => u.Username == request.Username);
+
+        if (existingUser != null)
+        {
+            return BadRequest("User already exists");
+        }
+
+        var user = new User
+        {
+            Username = request.Username,
+            Role = "User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+        };
+
+        _context.Users.Add(user);
+        _context.SaveChanges();
+
+        return Ok("User created");
+    }
+
+
+    // =========================
+    // generatehash
+    // =========================
+    [HttpGet("generatehash")]
+    public IActionResult GenerateHash(string password)
+    {
+        var hash = BCrypt.Net.BCrypt.HashPassword(password);
+
+        return Ok(hash);
+    }
+
+    // =========================
+    // LOGIN
+    // =========================
+    [HttpPost("login")]
+    public IActionResult Login(DemoERPApi.Models.LoginRequest request)
+    {
+        var user = _context.Users
+            .FirstOrDefault(u => u.Username == request.Username);
+
+        if (user == null)
         {
             return Unauthorized();
         }
 
-        var token = GenerateToken(request.Username);
-
-        return Ok(new
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            token
-        });
+            return Unauthorized();
+        }
+
+        var token = GenerateToken(user.Username, user.Role);
+
+        return Ok(new { token });
     }
 
-    private string GenerateToken(string username)
+    // =========================
+    // JWT TOKEN
+    // =========================
+    private string GenerateToken(string username, string role)
     {
-        var jwtSettings =
-            _configuration.GetSection("JwtSettings");
+        var jwtSettings = _configuration.GetSection("JwtSettings");
 
-        var key =
-            new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtSettings["Key"]));
 
-        var creds =
-            new SigningCredentials(
-                key,
-                SecurityAlgorithms.HmacSha256);
+        var creds = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, username)
-        };
+    new Claim("username", username),
+    new Claim(ClaimTypes.Name, username),
+    new Claim(ClaimTypes.Role, role),
+    new Claim("role", role)
+};
 
-        var token =
-            new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(60),
-                signingCredentials: creds);
+        var token = new JwtSecurityToken(
+            issuer: jwtSettings["Issuer"],
+            audience: jwtSettings["Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(60),
+            signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler()
-            .WriteToken(token);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

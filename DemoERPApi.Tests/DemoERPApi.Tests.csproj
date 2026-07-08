@@ -8,6 +8,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Include="ReadMe\CustomerControllerTestsVer4.5.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.19.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
@@ -22,6 +27,18 @@
 
 	<ItemGroup>
 	  <Folder Include="Jmeter Load Testing\" />
+	  <Folder Include="Scripts\" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Scripts\reset.sql">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="appsettings.Test.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
+	
 </Project>

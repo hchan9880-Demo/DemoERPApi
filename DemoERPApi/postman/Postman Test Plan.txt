@@ -193,7 +193,7 @@ Verify the following validation rules.
 
 | Scenario             | Expected Result |
 | -------------------- | --------------- |
-| Missing CustomerId   | HTTP 400        |
+| Missing CustomerID   | HTTP 400        |
 | Missing FirstName    | HTTP 400        |
 | Missing Email        | HTTP 400        |
 | Invalid Email Format | HTTP 400        |
