@@ -24,7 +24,6 @@
 
 	<ItemGroup>
 		<Folder Include="docs\Test Result\" />
-		<Folder Include="NewFolder\" />
 		<Folder Include="sql\seed\" />
 		<Folder Include="sql\stored_procedures\" />
 		<Folder Include="src\DemoERPApi\" />

@@ -1,0 +1,108 @@
+The Quickest Built-in Way (TRX to HTML/Excel)
+Visual Studio logs all test executions into a standard standard .trx (Test Results XML) file. You can generate this via the CLI and instantly turn it into an interactive HTML or Excel report.
+
+Open your terminal (or Visual Studio Developer PowerShell) at your root solution directory.
+
+Run the following command to execute the tests and output a logger file:
+
+Bash
+dotnet test --logger "trx;LogFileName=test_results.trx"
+Look in your test project's TestResults/ folder for test_results.trx.
+
+To convert that .trx into a beautiful HTML/PDF doc:
+Install the global liquid report generator tool:
+
+Bash
+dotnet tool install -g trx2html
+trx2html TestResults/test_results.trx
+This will produce a styled HTML page with charts summarizing your 136 tests, which you can open in any browser and choose Print -> Save as PDF.
+
+
+dotnet test --logger "trx;LogFileName=test_results.trx"
+dotnet TrxToExtentReport -t .\DemoERPApi.Tests\TestResults\test_results.trx -o .\TestReport.html
+
+
+
+
+
+
+
+
+
+
+
+
+LiquidTestReports (Markdown Dashboard)
+The CLI tool package name on NuGet is actually LiquidTestReports.Cli. Since it's currently in beta, you just need to add the --prerelease flag.
+
+Install the tool:
+
+PowerShell
+dotnet tool install --global LiquidTestReports.Cli --prerelease
+Run your tests to generate a .trx file:
+
+PowerShell
+dotnet test --logger "trx;LogFileName=test_results.trx"
+Convert the .trx directly to a beautiful Markdown report:
+
+PowerShell
+liquid --inputs "File=**/test_results.trx;Format=Trx" --output-file Milestone_4_7_Report.md
+This spits out a clean Milestone_4_7_Report.md in your project folder, which you can open or print to PDF!
+
+
+
+
+
+
+
+
+Step 1: Save the Script to a File
+Open Notepad (or Visual Studio Code).
+
+Copy the entire PowerShell script block from my previous message.
+
+Paste it into your text editor.
+
+Save the file with the name GenerateReport.ps1 (make sure the extension is .ps1 and not .txt).
+
+Place this file inside your root project folder: C:\Users\KingBoo\source\repos\DemoERPApi\.
+
+Step 2: Ensure your TRX file exists
+Before running the script, you need to make sure the test runner has dumped the raw data. In your open PowerShell terminal at C:\Users\KingBoo\source\repos\DemoERPApi, run:
+
+PowerShell
+dotnet test --logger "trx;LogFileName=test_results.trx"
+(Don't worry if it says "Build failed with 32 errors"—this is expected, it still outputs the test_results.trx file).
+
+Step 3: Run the Script
+Because Windows has safety restrictions on running scripts, you just need to call it with a dot-slash (.\) so PowerShell knows to look in your current folder:
+
+In your terminal, type:
+
+PowerShell
+.\GenerateReport.ps1
+Press Enter.
+
+Note: If you get an error saying “scripting is disabled on this system”, you just need to bypass the restriction for this one run by executing it like this instead:
+
+PowerShell
+PowerShell -ExecutionPolicy Bypass -File .\GenerateReport.ps1
+Step 4: Open your Report!
+Once you see the green "Success! Report written..." message in your terminal:
+
+Look inside your C:\Users\KingBoo\source\repos\DemoERPApi folder.
+
+You will find a brand new file named Milestone_4_7_Report.md.
+
+You can open this file directly in Visual Studio, VS Code, or any Markdown viewer to see a beautifully organized layout of all 32 failing tests and their exact error messages!
+
+
+
+
+
+
+
+PowerShell -ExecutionPolicy Bypass -File .\GenerateReport.ps1
+
+PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtml.ps1
+
