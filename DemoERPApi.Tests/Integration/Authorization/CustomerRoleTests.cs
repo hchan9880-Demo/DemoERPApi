@@ -17,7 +17,24 @@ AUTH-029	/api/Customer/{id}	PUT	    Customer -> Updates another customer's profi
 AUTH-032	/api/Customer/{id}	DELETE	Customer -> Deletes another customer's account       -> 403 Forbidden
 AUTH-050	/api/Customer/sync	POST	Customer -> Attempts to create a new customer record -> 403 Forbidden
 */
+/*
+ Added workflow explanation for each test cases in this format:
 
+JWT valid
+      ↓
+Role = <Admin | QA | Customer>
+      ↓
+Authorization Policy
+      ↓
+Resource within permitted scope?
+      ↓
+Yes / No
+      ↓
+Business Operation (if allowed)
+      ↓
+Return 200 OK / 403 Forbidden
+ 
+*/
 public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
@@ -30,7 +47,20 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // ===================================================================================
-    // AUTH-014: Customer attempts to retrieve another customer
+    // AUTH-014: Customer attempts to retrieve another customer's record
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
     // ===================================================================================
     [Fact]
     public async Task AUTH_014_CustomerRetrievesAnotherCustomer_ReturnsForbidden()
@@ -47,7 +77,20 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // ===================================================================================
-    // AUTH-029: Customer updates another customer's profile
+    // AUTH-029: Customer attempts to update another customer's profile
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
     // ===================================================================================
     [Fact]
     public async Task AUTH_029_CustomerUpdatesAnotherCustomerProfile_ReturnsForbidden()
@@ -73,7 +116,20 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // ===================================================================================
-    // AUTH-032: Customer deletes another customer's account
+    // AUTH-032: Customer attempts to delete another customer's account
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
     // ===================================================================================
     [Fact]
     public async Task AUTH_032_CustomerDeletesAnotherCustomerAccount_ReturnsForbidden()
@@ -91,6 +147,21 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
 
     // ===================================================================================
     // AUTH-050: Customer attempts to create customer via sync endpoint
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Authorization Policy
+    //      ↓
+    // Access Allowed
+    //      ↓
+    // Request payload valid?
+    //      ↓ Yes
+    // Create customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_050_CustomerAttemptsToCreateCustomer_ReturnOK()

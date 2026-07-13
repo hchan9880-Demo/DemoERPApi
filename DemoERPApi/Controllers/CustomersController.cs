@@ -115,6 +115,7 @@ public class CustomerController : ControllerBase
 
 
 
+
     // =====================================================
     // CUSTOMER ACCESS CHECK
     //
@@ -122,7 +123,7 @@ public class CustomerController : ControllerBase
     // Old version checked Users.CustomerID
     // New version checks CustomerAccess table
     // =====================================================
-
+    /*
     private bool CanAccessCustomer(string crmId)
     {
         var currentUser =
@@ -141,16 +142,36 @@ public class CustomerController : ControllerBase
         conn.Open();
 
 
+        const string sql = @"
 
+SELECT COUNT(*)
+FROM CustomerAccess
+WHERE CRMCustomerID=@crmId
+AND LOWER(Username)=LOWER(@username)
+
+UNION ALL
+
+SELECT COUNT(*)
+FROM Users
+WHERE CustomerID=@crmId
+AND LOWER(Username)=LOWER(@username)
+AND IsActive=1
+
+";
         using var cmd =
-            new SqlCommand(@"
-            SELECT COUNT(*)
-            FROM CustomerAccess
-            WHERE CRMCustomerID = @crmId
-            AND LOWER(LTRIM(RTRIM(Username))) =
-                LOWER(LTRIM(RTRIM(@username)))
-        ",
+            new SqlCommand(sql,
             conn);
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -165,13 +186,80 @@ public class CustomerController : ControllerBase
 
 
 
-        var count =
-            Convert.ToInt32(
-                cmd.ExecuteScalar());
 
+
+
+        using var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            if (reader.GetInt32(0) > 0)
+                return true;
+        }
+
+        return false;
+
+    }
+
+
+
+
+
+    */
+
+    private bool CanAccessCustomer(string crmId)
+    {
+        var currentUser = GetCurrentUser();
+
+        Console.WriteLine("=================================");
+        Console.WriteLine($"Current User = [{currentUser}]");
+        Console.WriteLine($"Requested CRM = [{crmId}]");
+
+        using var conn = new SqlConnection(_connectionString);
+        conn.Open();
+
+        Console.WriteLine($"Database = {conn.Database}");
+
+        using var cmd = new SqlCommand(@"
+SELECT CRMCustomerID,
+       Username
+FROM CustomerAccess
+ORDER BY CRMCustomerID
+", conn);
+
+        using var reader = cmd.ExecuteReader();
+
+        Console.WriteLine("CustomerAccess table:");
+
+        while (reader.Read())
+        {
+            Console.WriteLine(
+                $"{reader["CRMCustomerID"]} -> {reader["Username"]}");
+        }
+
+        reader.Close();
+
+        using var check = new SqlCommand(@"
+SELECT COUNT(*)
+FROM CustomerAccess
+WHERE CRMCustomerID=@crmId
+AND LOWER(Username)=LOWER(@username)
+", conn);
+
+        check.Parameters.AddWithValue("@crmId", crmId);
+        check.Parameters.AddWithValue("@username", currentUser);
+
+        var count = Convert.ToInt32(check.ExecuteScalar());
+
+        Console.WriteLine($"Match Count = {count}");
 
         return count > 0;
     }
+
+
+
+
+
 
 
 
@@ -775,6 +863,24 @@ public class CustomerController : ControllerBase
 
     // =====================================================
     // DELETE /api/Customer/{customerId}
+    /*     
+        Authenticate?
+        No  -> 401
+
+        Role present?
+        No  -> 403
+
+        Supported role?
+        No  -> 403
+
+        Customer exists?
+        No  -> 404
+
+        Ownership?
+        No  -> 403
+
+        Delete
+     */
     // =====================================================
 
     [HttpDelete("{customerId}")]
@@ -803,8 +909,24 @@ public class CustomerController : ControllerBase
         if (string.IsNullOrWhiteSpace(role))
             return Forbid();
 
+        // =====================================================
+        // VALIDATE SUPPORTED ROLE
+        // =====================================================
 
+        bool isAdmin =
+            string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
 
+        bool isQA =
+            string.Equals(role, "QA", StringComparison.OrdinalIgnoreCase);
+
+        bool isCustomer =
+            string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
+
+        if (!isAdmin && !isQA && !isCustomer)
+        {
+            return Forbid();
+        }
+        /*
 
         bool isAdmin =
             string.Equals(
@@ -822,7 +944,7 @@ public class CustomerController : ControllerBase
             }
         }
 
-
+*/
 
         using var conn =
             new SqlConnection(_connectionString);
@@ -855,7 +977,25 @@ public class CustomerController : ControllerBase
         // AUTHORIZATION
         // =====================================================
 
-         isAdmin =
+
+
+     isAdmin =
+            string.Equals(
+                role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase);
+
+        if (!isAdmin)
+        {
+            if (!CanAccessCustomer(customerId))
+            {
+                return Forbid();
+            }
+        }
+
+
+
+        isAdmin =
             string.Equals(
                 role,
                 "Admin",

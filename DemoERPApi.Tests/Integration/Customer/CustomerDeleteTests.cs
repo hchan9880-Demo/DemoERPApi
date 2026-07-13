@@ -47,6 +47,17 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-001: Admin deletes existing customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Soft Delete Customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task DELETE_001_AdminDeletesExistingCustomer_ReturnsOk()
@@ -63,6 +74,17 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-002: Admin deletes with invalid/null customer id
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // CustomerId supplied?
+    //      ↓ No
+    // Route not matched
+    //      ↓
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task DELETE_002_AdminDeletesWithNullCustomerId_ReturnsNotFound()
@@ -76,6 +98,15 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-003: Admin deletes non-existent customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ No
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task DELETE_003_AdminDeletesNonExistentCustomer_ReturnsNotFound()
@@ -89,6 +120,19 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-004: QA deletes assigned customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Customer assigned to QA?
+    //      ↓ Yes
+    // Soft Delete Customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task DELETE_004_QADeletesAssignedCustomer_ReturnsOk()
@@ -105,6 +149,17 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-005: QA deletes invalid customer id
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // CustomerId supplied?
+    //      ↓ No
+    // Route not matched
+    //      ↓
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task DELETE_005_QADeletesInvalidCustomerId_ReturnsNotFound()
@@ -118,6 +173,17 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-006: QA deletes non-existent assigned customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Supported role
+    //      ↓
+    // Customer exists?
+    //      ↓ No
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task DELETE_006_QADeletesNonExistentAssignedCustomer_ReturnsNotFound()
@@ -128,9 +194,21 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
     // =====================================================
     // DELETE-007: Customer deletes own account if permitted
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Own account?
+    //      ↓ Yes
+    // Soft Delete Customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task DELETE_007_CustomerDeletesOwnAccountIfPermitted_ReturnsOK()
@@ -147,6 +225,19 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-008: Soft delete sets IsDeleted
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Soft Delete Customer
+    //      ↓
+    // Verify IsDeleted = true in database
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task DELETE_008_SoftDeleteSetsIsDeleted_InDatabase()
@@ -168,9 +259,21 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.NotNull(isDeletedValue);
         Assert.True(Convert.ToBoolean(isDeletedValue));
     }
-
     // =====================================================
     // DELETE-009: Deleted customer excluded from normal reads
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Soft Delete Customer
+    //      ↓
+    // Execute GET request
+    //      ↓
+    // Deleted customer filtered out
+    //      ↓
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task DELETE_009_DeletedCustomer_ExcludedFromNormalReads()
@@ -189,6 +292,19 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // DELETE-010: Delete already deleted customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // First delete succeeds
+    //      ↓
+    // Second delete request
+    //      ↓
+    // Customer already deleted
+    //      ↓
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task DELETE_010_DeleteAlreadyDeletedCustomer_ReturnsNotFound()
@@ -205,7 +321,14 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // SECURITY AUTHENTICATION CHECKS
+    // SECURITY-DELETE-001: Missing JWT token
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
     // =====================================================
     [Fact]
     public async Task DeleteCustomer_ReturnsUnauthorized_WhenJwtMissing()
@@ -216,7 +339,18 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SECURITY-DELETE-002: Invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task DeleteCustomer_ReturnsUnauthorized_WhenJwtInvalid()
     {

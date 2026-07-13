@@ -35,6 +35,19 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // SYNC-001: Admin creates customer (Valid payload)
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Request payload valid?
+    //      ↓ Yes
+    // Customer already exists?
+    //      ↓ No
+    // Create customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task SYNC_001_AdminCreatesCustomer_WithValidPayload_ReturnsOk()
@@ -57,7 +70,22 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // SYNC-002: Admin creates duplicate customer
+    // SYNC-003: QA creates assigned customer if permitted
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer assigned to QA?
+    //      ↓ Yes
+    // Request payload valid?
+    //      ↓ Yes
+    // Customer already exists?
+    //      ↓ No
+    // Create customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task SYNC_002_AdminCreatesDuplicateCustomer_ReturnsConflict()
@@ -79,7 +107,14 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // SYNC-003: QA creates assigned customer if permitted
+    // SECURITY-SYNC-003: Missing JWT token
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
     // =====================================================
     [Fact]
     public async Task SYNC_003_QACreatesAssignedCustomer_IfPermitted_ReturnsOk()
@@ -119,6 +154,36 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
             response.StatusCode);
     }
 
+    // =====================================================
+    // SECURITY-SYNC-004: Invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
+    [Fact]
+    public async Task SyncCustomer_ReturnsUnauthorized_WhenJwtInvalid()
+    {
+        TestAuthHelper.SetInvalidToken(_client);
+
+        var request = new CustomerDto
+        {
+            CRMCustomerID = "CRM402",
+            FirstName = "Bad",
+            LastName = "Token",
+            Email = "bad@test.com",
+            Phone = "6042222222"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
     // =====================================================
     // SYNC-015: Sync duplicate against soft-deleted customer
     // =====================================================
@@ -199,7 +264,20 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-
+    // =====================================================
+    // VALIDATION-SYNC-001: Missing Customer ID
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // CustomerId supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsUnauthorized_WhenJwtMissing()
     {
@@ -219,44 +297,20 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
-    public async Task SyncCustomer_ReturnsUnauthorized_WhenJwtInvalid()
-    {
-        TestAuthHelper.SetInvalidToken(_client);
-
-        var request = new CustomerDto
-        {
-            CRMCustomerID = "CRM402",
-            FirstName = "Bad",
-            LastName = "Token",
-            Email = "bad@test.com",
-            Phone = "6042222222"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenCustomerIDIsMissing()
-    {
-        TestAuthHelper.SetAdminToken(_client);
-
-        var request = new CustomerDto
-        {
-            CRMCustomerID = null,
-            FirstName = "Test",
-            LastName = "User",
-            Email = "test@test.com",
-            Phone = "6049991111"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
+    // =====================================================
+    // VALIDATION-SYNC-002: Missing First Name
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // FirstName supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenFirstNameIsMissing()
     {
@@ -276,6 +330,21 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+
+    // =====================================================
+    // VALIDATION-SYNC-003: Missing Email
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenEmailIsMissing()
     {
@@ -295,6 +364,20 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // =====================================================
+    // VALIDATION-SYNC-004: Invalid Email Format
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenEmailIsInvalid()
     {
@@ -314,6 +397,20 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // =====================================================
+    // VALIDATION-SYNC-005: Invalid Phone Number
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Phone format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
     {
@@ -333,6 +430,20 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // =====================================================
+    // VALIDATION-SYNC-006: Missing Phone Number
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Phone supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenPhoneIsNull()
     {
@@ -352,6 +463,20 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // =====================================================
+    // VALIDATION-SYNC-007: Invalid JSON Payload
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // JSON payload valid?
+    //      ↓ No
+    // Request deserialization fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenJsonIsInvalid()
     {
@@ -369,6 +494,24 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         var content = new StringContent(invalidJson, Encoding.UTF8, "application/json");
 
         var response = await _client.PostAsync("/api/Customer/sync", content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+    [Fact]
+    public async Task SyncCustomer_ReturnsBadRequest_WhenCustomerIDIsMissing()
+    {
+        TestAuthHelper.SetAdminToken(_client);
+
+        var request = new CustomerDto
+        {
+            CRMCustomerID = null,
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@test.com",
+            Phone = "6049991111"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

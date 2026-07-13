@@ -1,5 +1,6 @@
 ﻿using DemoERPApi.Data;
 using DemoERPApi.Models;
+using DemoERPApi.Tests.Fixtures;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +11,9 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Xunit;
 using Xunit.Abstractions;
+using static DemoERPApi.Tests.Helpers.TestData;
 
 namespace DemoERPApi.Tests.Helpers;
 
@@ -249,10 +252,37 @@ public static class CustomerSeedHelper
     */
 
 
+    public static async Task VerifyCustomerAccess(
+     IServiceProvider services,
+     string username,
+     string customerId,
+     ITestOutputHelper output)
+    {
+        using var scope = services.CreateScope();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<AppDbContext>();
+
+
+        var access = await db.CustomerAccess
+            .FirstOrDefaultAsync(x =>
+                x.Username == username &&
+                x.CRMCustomerID == customerId);
 
 
 
+        output.WriteLine(
+            $"Looking for CustomerAccess: Username={username}, CustomerId={customerId}");
 
+
+        output.WriteLine(
+            access == null
+                ? "CustomerAccess NOT FOUND"
+                : $"Found: {access.Username} -> {access.CRMCustomerID}");
+
+
+        Assert.NotNull(access);
+    }
 
     public static async Task AssignCustomerAccess(
     string crmCustomerId,
@@ -262,8 +292,7 @@ public static class CustomerSeedHelper
         try
         {
             var connectionString =
-                "Server=(localdb)\\MSSQLLocalDB;Database=DemoERP_Test;Trusted_Connection=True;TrustServerCertificate=True;";
-
+  "Server=localhost\\SQLEXPRESS;Database=DemoERP;Trusted_Connection=True;TrustServerCertificate=True";
 
             await using var conn =
                 new SqlConnection(connectionString);
@@ -293,8 +322,8 @@ public static class CustomerSeedHelper
                         @username
                     )
                 END
-            ",
-                conn);
+            ", conn);
+
 
 
             cmd.Parameters.AddWithValue(
@@ -307,7 +336,9 @@ public static class CustomerSeedHelper
                 username);
 
 
+
             await cmd.ExecuteNonQueryAsync();
+
 
 
             output?.WriteLine(

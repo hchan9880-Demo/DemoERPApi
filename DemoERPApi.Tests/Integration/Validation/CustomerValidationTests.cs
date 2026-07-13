@@ -40,7 +40,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     // =====================================================
     // UPDATE ENDPOINT VALIDATION (PUT /api/Customer/{id})
     // =====================================================
-
+    // =====================================================
+    // VALID-001: Malformed JSON update payload
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // JSON payload valid?
+    //      ↓ No
+    // Request deserialization fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_001_UpdateMalformedJsonPayload_ReturnsBadRequest()
     {
@@ -52,7 +65,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-002: Missing required fields on update
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Required fields present?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_002_UpdateMissingRequiredFields_ReturnsBadRequest()
     {
@@ -70,7 +96,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-003: Invalid email on update
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_003_UpdateInvalidEmail_ReturnsBadRequest()
     {
@@ -88,7 +127,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-004: Invalid phone on update
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Phone format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_004_UpdateInvalidPhone_ReturnsBadRequest()
     {
@@ -110,7 +162,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     // =====================================================
     // SYNC ENDPOINT VALIDATION (POST /api/Customer/sync)
     // =====================================================
-
+    // =====================================================
+    // VALID-005: Malformed JSON sync payload
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // JSON payload valid?
+    //      ↓ No
+    // Request deserialization fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_005_SyncMalformedJsonPayload_ReturnsBadRequest()
     {
@@ -122,7 +187,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-006: Missing required fields on sync
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Required fields present?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_006_SyncMissingRequiredFields_ReturnsBadRequest()
     {
@@ -140,7 +218,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-007: Invalid email on sync
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_007_SyncInvalidEmail_ReturnsBadRequest()
     {
@@ -158,7 +249,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-008: Invalid phone on sync
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Phone format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_008_SyncInvalidPhone_ReturnsBadRequest()
     {
@@ -180,7 +284,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     // =====================================================
     // CREATE ENDPOINT VALIDATION (POST /api/Customer)
     // =====================================================
-
+    // =====================================================
+    // VALID-009: Malformed JSON create payload
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // JSON payload valid?
+    //      ↓ No
+    // Request deserialization fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_009_CreateMalformedJsonPayload_ReturnsBadRequest()
     {
@@ -192,7 +309,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-010: Missing required fields on create
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Required fields present?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_010_CreateMissingRequiredFields_ReturnsBadRequest()
     {
@@ -210,7 +340,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-011: Invalid email on create
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_011_CreateInvalidEmail_ReturnsBadRequest()
     {
@@ -228,7 +371,20 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALID-012: Invalid phone on create
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Phone format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task VALID_012_CreateInvalidPhone_ReturnsBadRequest()
     {

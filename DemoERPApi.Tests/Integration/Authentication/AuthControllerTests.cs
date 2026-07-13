@@ -21,7 +21,36 @@ AUTH-007	Missing password	                    {"username":"admin"}
 AUTH-008	Empty JSON body	                      {}
 AUTH-009	Malformed JSON	                      {"username":"admin", "password": }
 AUTH-010	Wrong content type / invalid payload  Non-JSON payload or wrong schema
-*/
+
+Authentication pipeline (Login endpoint)
+
+Login Request
+    ↓
+Model Validation
+    ↓
+User Lookup
+    ↓
+Password Verification
+    ↓
+Generate JWT
+    ↓
+200 OK
+
+Authorization pipeline (Protected endpoints)
+
+JWT Valid
+    ↓
+Role
+    ↓
+Authorization Policy
+    ↓
+Resource Access
+    ↓
+Business Operation
+    ↓
+200 OK / 403 Forbidden
+
+ */
 
 public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -34,7 +63,26 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-001: Valid login - admin
+    // AUTH-001
+    // Valid login - Admin
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Validate Request Model
+    //      ↓
+    // Lookup User
+    //      ↓
+    // Verify Password
+    //      ↓
+    // Credentials Valid?
+    //      ↓
+    // Yes
+    //      ↓
+    // Generate JWT
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task AUTH_001_ValidLoginAdmin_ReturnsOk()
@@ -51,7 +99,26 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-002: Valid login - QA
+    // AUTH-002
+    // Valid login - QA
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Validate Request Model
+    //      ↓
+    // Lookup User
+    //      ↓
+    // Verify Password
+    //      ↓
+    // Credentials Valid?
+    //      ↓
+    // Yes
+    //      ↓
+    // Generate JWT
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task AUTH_002_ValidLoginQA_ReturnsOk()
@@ -68,7 +135,26 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-003: Valid login - customer
+    // AUTH-003
+    // Valid login - Customer
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Validate Request Model
+    //      ↓
+    // Lookup User
+    //      ↓
+    // Verify Password
+    //      ↓
+    // Credentials Valid?
+    //      ↓
+    // Yes
+    //      ↓
+    // Generate JWT
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task AUTH_003_ValidLoginCustomer_ReturnsOk()
@@ -85,7 +171,24 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-004: Invalid username
+    // AUTH-004
+    // Invalid username
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Validate Request Model
+    //      ↓
+    // Lookup User
+    //      ↓
+    // User Found?
+    //      ↓
+    // No
+    //      ↓
+    // Authentication Failed
+    //      ↓
+    // Return 401 Unauthorized
     // =====================================================
     [Fact]
     public async Task AUTH_004_InvalidUsername_ReturnsUnauthorized()
@@ -102,7 +205,26 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-005: Invalid password
+    // AUTH-005
+    // Invalid password
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Validate Request Model
+    //      ↓
+    // Lookup User
+    //      ↓
+    // Verify Password
+    //      ↓
+    // Password Correct?
+    //      ↓
+    // No
+    //      ↓
+    // Authentication Failed
+    //      ↓
+    // Return 401 Unauthorized
     // =====================================================
     [Fact]
     public async Task AUTH_005_InvalidPassword_ReturnsUnauthorized()
@@ -119,7 +241,20 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-006: Missing username
+    // AUTH-006
+    // Missing username
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Model Validation
+    //      ↓
+    // Username Missing?
+    //      ↓
+    // Yes
+    //      ↓
+    // Return 400 Bad Request
     // =====================================================
     [Fact]
     public async Task AUTH_006_MissingUsername_ReturnsBadRequest()
@@ -136,7 +271,20 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-007: Missing password
+    // AUTH-007
+    // Missing password
+    //
+    // Authentication Workflow:
+    //
+    // Login Request
+    //      ↓
+    // Model Validation
+    //      ↓
+    // Password Missing?
+    //      ↓
+    // Yes
+    //      ↓
+    // Return 400 Bad Request
     // =====================================================
     [Fact]
     public async Task AUTH_007_MissingPassword_ReturnsBadRequest()
@@ -153,7 +301,22 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-008: Empty JSON body
+    // AUTH-008
+    // Empty JSON body
+    //
+    // Authentication Workflow:
+    //
+    // HTTP Request
+    //      ↓
+    // JSON Model Binding
+    //      ↓
+    // Required Fields Present?
+    //      ↓
+    // No
+    //      ↓
+    // Model Validation Failed
+    //      ↓
+    // Return 400 Bad Request
     // =====================================================
     [Fact]
     public async Task AUTH_008_EmptyJsonBody_ReturnsBadRequest()
@@ -166,7 +329,22 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-009: Malformed JSON
+    // AUTH-009
+    // Malformed JSON
+    //
+    // Authentication Workflow:
+    //
+    // HTTP Request
+    //      ↓
+    // JSON Parsing
+    //      ↓
+    // Valid JSON?
+    //      ↓
+    // No
+    //      ↓
+    // Request Rejected
+    //      ↓
+    // Return 400 Bad Request
     // =====================================================
     [Fact]
     public async Task AUTH_009_MalformedJson_ReturnsBadRequest()
@@ -180,7 +358,24 @@ public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // AUTH-010: Wrong content type / invalid payload
+    // AUTH-010
+    // Wrong content type / invalid payload
+    //
+    // Authentication Workflow:
+    //
+    // HTTP Request
+    //      ↓
+    // Content-Type Validation
+    //      ↓
+    // Supported Media Type?
+    //      ↓
+    // No
+    //      ↓
+    // Request Rejected
+    //      ↓
+    // Return 415 Unsupported Media Type
+    //           or
+    // Return 400 Bad Request
     // =====================================================
     [Fact]
     public async Task AUTH_010_WrongContentTypeOrInvalidPayload_ReturnsUnsupportedMediaTypeOrBadRequest()

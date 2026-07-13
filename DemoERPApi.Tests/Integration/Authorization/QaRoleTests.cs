@@ -20,7 +20,24 @@ AUTH-030	/api/Customer/{id}	DELETE	QA -> Deletes another QA user's customer     
 AUTH-031	/api/Customer/{id}	DELETE	QA -> Deletes customer outside assignment scope   -> 403 Forbidden
 AUTH-048	/api/Customer/sync	POST	QA -> Creates customer outside assigned scope    -> 403 Forbidden
 */
+/*
+ Added workflow explanation for each test cases in this format:
 
+JWT valid
+      ↓
+Role = <Admin | QA | Customer>
+      ↓
+Authorization Policy
+      ↓
+Resource within permitted scope?
+      ↓
+Yes / No
+      ↓
+Business Operation (if allowed)
+      ↓
+Return 200 OK / 403 Forbidden
+ 
+*/
 public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
@@ -45,7 +62,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
     // ===================================================================================
     // GET /api/Customer/{id} - ASSIGNMENT SCOPE CHECKS
     // ===================================================================================
-
+    // ===================================================================================
+    // AUTH-012: QA retrieves another QA user's customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer assigned to current QA?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_012_GetCustomer_AssignedToDifferentQA_ReturnsForbidden()
     {
@@ -59,7 +91,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-
+    // ===================================================================================
+    // AUTH-013: QA retrieves customer outside assignment scope
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer within assignment scope?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_013_GetCustomer_OutsideAssignmentScope_ReturnsForbidden()
     {
@@ -77,7 +124,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
     // ===================================================================================
     // PUT /api/Customer/{id} - ASSIGNMENT SCOPE CHECKS
     // ===================================================================================
-
+    // ===================================================================================
+    // AUTH-027: QA updates another QA user's customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer assigned to current QA?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_027_UpdateCustomer_AssignedToDifferentQA_ReturnsForbidden()
     {
@@ -93,7 +155,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-
+    // ===================================================================================
+    // AUTH-028: QA updates customer outside assignment scope
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer within assignment scope?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_028_UpdateCustomer_OutsideAssignmentScope_ReturnsForbidden()
     {
@@ -113,7 +190,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
     // ===================================================================================
     // DELETE /api/Customer/{id} - ASSIGNMENT SCOPE CHECKS
     // ===================================================================================
-
+    // ===================================================================================
+    // AUTH-030: QA deletes another QA user's customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer assigned to current QA?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_030_DeleteCustomer_AssignedToDifferentQA_ReturnsForbidden()
     {
@@ -127,7 +219,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-
+    // ===================================================================================
+    // AUTH-031: QA deletes customer outside assignment scope
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer within assignment scope?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_031_DeleteCustomer_OutsideAssignmentScope_ReturnsForbidden()
     {
@@ -145,7 +252,22 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
     // ===================================================================================
     // POST /api/Customer/sync - SCOPE CHECKS
     // ===================================================================================
-
+    // ===================================================================================
+    // AUTH-048: QA creates customer outside assigned scope
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Requested operation within assignment scope?
+    //      ↓ No
+    // Authorization Policy
+    //      ↓
+    // Access Denied
+    //      ↓
+    // Return 403 Forbidden
+    // ===================================================================================
     [Fact]
     public async Task AUTH_048_SyncCustomer_OutsideAssignedScope_ReturnsForbidden()
     {

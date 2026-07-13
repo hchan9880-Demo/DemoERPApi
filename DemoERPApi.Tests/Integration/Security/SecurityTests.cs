@@ -1,6 +1,7 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -10,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using static DemoERPApi.Tests.Helpers.TestData;
 
 namespace DemoERPApi.Tests.Integration.Security;
 
@@ -34,34 +36,25 @@ SEC-015    /api/Customer/{id}    PUT    Customer updates own profile           2
 
 
 
-
-
-
-
-
 public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
     private const string TARGET_ID = "SEC_TEST_99";
 
-
     public SecurityTests(
         WebApplicationFactory<Program> factory,
         ITestOutputHelper output)
     {
+        _factory = factory;
         _output = output;
 
-        DatabaseResetHelper.Reset(
-            factory.Services);
+        DatabaseResetHelper.Reset(factory.Services);
 
-        _client =
-            factory.CreateClient();
+        _client = factory.CreateClient();
     }
-
-
-
 
     private static CustomerDto GetValidPayload(string customId = TARGET_ID) => new()
     {
@@ -72,10 +65,21 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         Phone = "6041234567"
     };
 
+
+
     // =====================================================
     // ROUTE SPECIFIC CHECKS (SEC-001 to SEC-008)
     // =====================================================
-
+    // =====================================================
+    // SEC-001: Get customer without Authorization header
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_001_GetCustomer_MissingAuthHeader_ReturnsUnauthorized()
     {
@@ -83,7 +87,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-002: Get customer with invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_002_GetCustomer_InvalidJwtToken_ReturnsUnauthorized()
     {
@@ -91,7 +106,16 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-003: Update customer without Authorization header
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_003_UpdateCustomer_MissingAuthHeader_ReturnsUnauthorized()
     {
@@ -99,7 +123,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PutAsJsonAsync($"/api/Customer/{TARGET_ID}", GetValidPayload());
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-004: Update customer with invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_004_UpdateCustomer_InvalidJwtToken_ReturnsUnauthorized()
     {
@@ -107,7 +142,16 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PutAsJsonAsync($"/api/Customer/{TARGET_ID}", GetValidPayload());
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-005: Delete customer without Authorization header
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_005_DeleteCustomer_MissingAuthHeader_ReturnsUnauthorized()
     {
@@ -115,7 +159,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.DeleteAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-006: Delete customer with invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_006_DeleteCustomer_InvalidJwtToken_ReturnsUnauthorized()
     {
@@ -123,7 +178,16 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.DeleteAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-007: Sync customer without Authorization header
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_007_SyncCustomer_MissingAuthHeader_ReturnsUnauthorized()
     {
@@ -131,7 +195,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsJsonAsync("/api/Customer/sync", GetValidPayload());
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-008: Sync customer with invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_008_SyncCustomer_InvalidJwtToken_ReturnsUnauthorized()
     {
@@ -143,7 +218,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
     // =====================================================
     // GENERAL SECURITY PROTOCOLS (SEC-009 to SEC-013)
     // =====================================================
-
+    // =====================================================
+    // SEC-009: Expired JWT Token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT expired
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_009_AnyEndpoint_ExpiredJwt_ReturnsUnauthorized()
     {
@@ -151,7 +237,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-010: Tampered JWT Signature
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT signature invalid
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task SEC_010_AnyEndpoint_TamperedJwtSignature_ReturnsUnauthorized()
     {
@@ -159,7 +256,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-011: Unsupported Role Claim
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role claim recognized?
+    //      ↓ No
+    // Authorization fails
+    //      ↓
+    // Return 403 Forbidden
+    // =====================================================
     [Fact]
     public async Task SEC_011_AnyEndpoint_UnsupportedRoleClaim_ReturnsForbidden()
     {
@@ -167,7 +275,20 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.DeleteAsync($"/api/Customer/{TARGET_ID}");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-012: SQL Injection / XSS Payload
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Request payload valid?
+    //      ↓ No
+    // Input validation detects malicious content
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task SEC_012_CustomerApis_SqlInjectionOrXssPayload_ReturnsBadRequest()
     {
@@ -184,7 +305,18 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsJsonAsync("/api/Customer/sync", maliciousPayload);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // SEC-013: No Stack Trace Leakage
+    //
+    // Workflow:
+    // Request triggers server error
+    //      ↓
+    // API generates RFC7807 Problem Details
+    //      ↓
+    // Internal exception details hidden
+    //      ↓
+    // Return sanitized error response
+    // =====================================================
     [Fact]
     public async Task SEC_013_AllEndpoints_OnError_NoStackTraceLeakage_ReturnsRFC7807ProblemDetails()
     {
@@ -209,15 +341,31 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
     // =====================================================
 
 
+    // =====================================================
+    // SEC-014: Customer Retrieves Own Profile
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ Yes
+    // Retrieve customer
+    //      ↓
+    // Return 200 OK
+    // =====================================================
 
     [Fact]
     public async Task SEC_014_GetCustomer_CustomerRetrievesOwnCustomerRecord_ReturnsOk()
     {
         var testId = "SEC_OWN_014";
 
-
+        //
+        // Step 1:
+        // Use Admin role to create customer
+        //
         TestAuthHelper.SetAdminToken(_client);
-
 
         await CustomerSeedHelper.SeedCustomer(
             _client,
@@ -225,26 +373,59 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
             _output);
 
 
+        //
+        // Step 2:
+        // Assign ownership:
+        //
+        // CustomerAccess:
+        // SEC_OWN_014 -> owner1
+        //
         await CustomerSeedHelper.AssignCustomerAccess(
             testId,
             "owner1",
             _output);
 
 
+        //
+        // Step 3:
+        // Verify database relationship exists
+        //
+        await CustomerSeedHelper.VerifyCustomerAccess(
+            _factory.Services,
+            "owner1",
+            testId,
+            _output);
+
+
+
+        //
+        // Step 4:
+        // Switch JWT identity to customer owner
+        //
         TestAuthHelper.SetOwnerToken(_client);
 
 
         DebugCurrentToken();
 
 
+        //
+        // Step 5:
+        // Customer retrieves own record
+        //
         var response =
             await _client.GetAsync(
                 $"/api/Customer/{testId}");
 
 
+
+        //
+        // Step 6:
+        // Assert authorization succeeded
+        //
         Assert.Equal(
             HttpStatusCode.OK,
             response.StatusCode);
+
 
 
         var returnedCustomer =
@@ -259,48 +440,143 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
             returnedCustomer.CRMCustomerID);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // =====================================================
+    // SEC-015: Customer Updates Own Profile
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ Yes
+    // Update payload valid?
+    //      ↓ Yes
+    // Update customer
+    //      ↓
+    // Verify updated values
+    //      ↓
+    // Return 200 OK
+    // =====================================================
 
     [Fact]
     public async Task SEC_015_UpdateCustomer_CustomerUpdatesOwnProfile_ReturnsOk()
     {
         var testId = "SEC_OWN_015";
 
-        // Seed data context via Admin token
-        TestAuthHelper.SetAdminToken(_client);
-        await CustomerSeedHelper.SeedCustomer(_client, testId);
 
-        // Switch context to Owner token acting on self record update
+        //
+        // Step 1:
+        // Use Admin role to create customer
+        //
+        TestAuthHelper.SetAdminToken(_client);
+
+
+        await CustomerSeedHelper.SeedCustomer(
+            _client,
+            testId,
+            _output);
+
+
+
+        //
+        // Step 2:
+        // Assign ownership:
+        //
+        // CustomerAccess:
+        // SEC_OWN_015 -> owner1
+        //
+        await CustomerSeedHelper.AssignCustomerAccess(
+            testId,
+            "owner1",
+            _output);
+
+
+
+        //
+        // Step 3:
+        // Verify ownership exists
+        //
+        await CustomerSeedHelper.VerifyCustomerAccess(
+            _factory.Services,
+            "owner1",
+            testId,
+            _output);
+
+
+
+        //
+        // Step 4:
+        // Switch JWT identity to customer owner
+        //
         TestAuthHelper.SetOwnerToken(_client);
-        
+
+
+        DebugCurrentToken();
+
+
+
+        //
+        // Step 5:
+        // Customer updates own profile
+        //
         var updatePayload = GetValidPayload(testId);
+
         updatePayload.FirstName = "SecurityUpdated";
 
-        var response = await _client.PutAsJsonAsync($"/api/Customer/{testId}", updatePayload);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        // Verify changes are queryable and persisted 
-        var verifyResponse = await _client.GetAsync($"/api/Customer/{testId}");
-        var verifiedCustomer = await verifyResponse.Content.ReadFromJsonAsync<CustomerDto>();
-        
+        var response =
+            await _client.PutAsJsonAsync(
+                $"/api/Customer/{testId}",
+                updatePayload);
+
+
+
+        //
+        // Step 6:
+        // Verify update succeeded
+        //
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
+
+
+
+        //
+        // Step 7:
+        // Verify persisted data
+        //
+        var verifyResponse =
+            await _client.GetAsync(
+                $"/api/Customer/{testId}");
+
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            verifyResponse.StatusCode);
+
+
+
+        var verifiedCustomer =
+            await verifyResponse.Content
+                .ReadFromJsonAsync<CustomerDto>();
+
+
+
         Assert.NotNull(verifiedCustomer);
-        Assert.Equal("SecurityUpdated", verifiedCustomer.FirstName);
-    }
 
+
+        Assert.Equal(
+            testId,
+            verifiedCustomer.CRMCustomerID);
+
+
+
+        Assert.Equal(
+            "SecurityUpdated",
+            verifiedCustomer.FirstName);
+    }
 
 
     private void DebugCurrentToken()
@@ -309,12 +585,19 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
             _client.DefaultRequestHeaders.Authorization?.Parameter;
 
         if (string.IsNullOrEmpty(token))
+        {
+            _output.WriteLine("No JWT token found.");
             return;
+        }
 
 
         var jwt =
             new JwtSecurityTokenHandler()
                 .ReadJwtToken(token);
+
+
+        _output.WriteLine(
+            "========== JWT CLAIMS ==========");
 
 
         foreach (var claim in jwt.Claims)

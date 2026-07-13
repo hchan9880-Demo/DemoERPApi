@@ -33,23 +33,21 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
         helper.SeedCustomers().GetAwaiter().GetResult();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // =====================================================
     // UPDATE-001: Duplicate customer conflict on update
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Update payload valid?
+    //      ↓ Yes
+    // Update creates duplicate?
+    //      ↓ Yes
+    // Return 409 Conflict
     // =====================================================
     [Fact]
     public async Task UPDATE_001_UpdatePayloadDuplicatesAnotherCustomer_ReturnsConflict()
@@ -94,9 +92,21 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
             HttpStatusCode.Conflict,
             response.StatusCode);
     }
-
     // =====================================================
     // UPDATE-004: Admin updates any customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Update payload valid?
+    //      ↓ Yes
+    // Update customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task UPDATE_004_AdminUpdatesAnyCustomer_WithValidPayload_ReturnsOk()
@@ -121,6 +131,15 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
     // =====================================================
     // UPDATE-005: Admin updates non-existent customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ No
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task UPDATE_005_AdminUpdatesNonExistentCustomer_ReturnsNotFound()
@@ -140,9 +159,21 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
     // =====================================================
     // UPDATE-006: QA updates assigned customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Customer assigned to QA?
+    //      ↓ Yes
+    // Update payload valid?
+    //      ↓ Yes
+    // Update customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
     public async Task UPDATE_006_QAUpdatesAssignedCustomer_WithValidPayload_ReturnsOk()
@@ -164,9 +195,19 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
-
     // =====================================================
     // UPDATE-007: QA updates non-existent assigned customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = QA
+    //      ↓
+    // Supported role
+    //      ↓
+    // Customer exists?
+    //      ↓ No
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task UPDATE_007_QAUpdatesNonExistentAssignedCustomer_ReturnsNotFound()
@@ -186,9 +227,17 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
     // =====================================================
-    // UPDATE-008: Customer updates non-existent own record reference
+    // UPDATE-008: Customer updates non-existent own record
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Customer exists?
+    //      ↓ No
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task UPDATE_008_CustomerUpdatesNonExistentOwnRecordReference_ReturnsNotFound()
@@ -208,9 +257,21 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
     // =====================================================
     // UPDATE-019: Update deleted customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes (Soft Deleted)
+    // Update request received
+    //      ↓
+    // Update blocked
+    //      ↓
+    // Return 404 NotFound
     // =====================================================
     [Fact]
     public async Task UPDATE_019_UpdateDeletedCustomer_ReturnsNotFoundOrBadRequest()
@@ -240,6 +301,22 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // =====================================================
     // SECURITY & VALIDATION SCHEMAS
     // =====================================================
+    // =====================================================
+    // SECURITY-UPDATE-001: Customer updates own customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ Yes
+    // Update payload valid?
+    //      ↓ Yes
+    // Update customer
+    //      ↓
+    // Return 200 OK
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsOk_WhenOwnerUpdatesOwnCustomer()
     {
@@ -258,7 +335,20 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
-
+    // =====================================================
+    // SECURITY-UPDATE-002: Customer updates another user's customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ No
+    // Authorization fails
+    //      ↓
+    // Return 403 Forbidden
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsForbidden_WhenOwnerUpdatesAnotherUsersCustomer()
     {
@@ -277,7 +367,20 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-
+    // =====================================================
+    // VALIDATION-UPDATE-001: Missing Customer ID
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // CustomerId supplied?
+    //      ↓ No
+    // Route not matched
+    //      ↓
+    // Return 404 NotFound
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsNotFound_WhenCustomerIDIsMissing()
     {
@@ -296,7 +399,20 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
+    // =====================================================
+    // VALIDATION-UPDATE-002: Missing First Name
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // FirstName supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenFirstNameIsMissing()
     {
@@ -315,7 +431,20 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALIDATION-UPDATE-003: Missing Email
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailIsMissing()
     {
@@ -334,7 +463,20 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALIDATION-UPDATE-004: Invalid Email Format
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Email format valid?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
     {
@@ -372,7 +514,20 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // VALIDATION-UPDATE-006: Missing Phone Number
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Phone supplied?
+    //      ↓ No
+    // Model validation fails
+    //      ↓
+    // Return 400 BadRequest
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenPhoneIsNull()
     {
@@ -391,7 +546,16 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
-
+    // =====================================================
+    // SECURITY-UPDATE-003: Missing JWT token
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsUnauthorized_WhenJwtMissing()
     {
@@ -410,7 +574,18 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
+    // =====================================================
+    // SECURITY-UPDATE-004: Invalid JWT token
+    //
+    // Workflow:
+    // JWT supplied
+    //      ↓
+    // JWT validation fails
+    //      ↓
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
     [Fact]
     public async Task UpdateCustomer_ReturnsUnauthorized_WhenJwtInvalid()
     {

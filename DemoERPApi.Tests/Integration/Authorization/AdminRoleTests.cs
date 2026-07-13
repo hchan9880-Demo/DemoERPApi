@@ -1,13 +1,40 @@
 ﻿using DemoERPApi.Models;
-using DemoERPApi.Tests.Helpers;
 using DemoERPApi.Tests.Fixtures;
+using DemoERPApi.Tests.Helpers;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
 using Xunit.Abstractions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DemoERPApi.Tests.Integration.Authorization;
 
+// Test Cases Covered:
+// AUTH-011a: Admin retrieves customer owned by another role
+// AUTH-011b: Admin updates another user's customer
+// AUTH-011c: Admin deletes another user's customer
+// AUTH-011d: Admin sync customer
+// AUTH-011e: Admin retrieves own customer record
+// AUTH-011f: Admin updates own customer
+// AUTH-011g: Admin deletes own customer
+/*
+ Added workflow explanation for each test cases in this format:
+
+JWT valid
+      ↓
+Role = <Admin | QA | Customer>
+      ↓
+Authorization Policy
+      ↓
+Resource within permitted scope?
+      ↓
+Yes / No
+      ↓
+Business Operation (if allowed)
+      ↓
+Return 200 OK / 403 Forbidden
+ 
+*/
 
 public class AdminRoleTests
     : IClassFixture<CustomWebApplicationFactory>
@@ -47,6 +74,19 @@ public class AdminRoleTests
 
     // ===================================================================================
     // AUTH-011a: Admin retrieves customer owned by another role
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Admin has full access?
+    //      ↓ Yes
+    // Retrieve customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011a_AdminRetrievesCustomerOwnedByAnotherRole_ReturnsOk()
@@ -117,12 +157,23 @@ public class AdminRoleTests
 
     }
 
-
-
-
-
     // ===================================================================================
     // AUTH-011b: Admin updates another user's customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Admin has full access?
+    //      ↓ Yes
+    // Update payload valid?
+    //      ↓ Yes
+    // Update customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011b_AdminUpdatesAnotherCustomerProfile_ReturnsOk()
@@ -165,12 +216,21 @@ public class AdminRoleTests
 
     }
 
-
-
-
-
     // ===================================================================================
     // AUTH-011c: Admin deletes another user's customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Admin has full access?
+    //      ↓ Yes
+    // Soft delete customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011c_AdminDeletesAnotherCustomerAccount_ReturnsOk()
@@ -203,12 +263,21 @@ public class AdminRoleTests
 
     }
 
-
-
-
-
     // ===================================================================================
     // AUTH-011d: Admin sync customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Request payload valid?
+    //      ↓ Yes
+    // Customer already exists?
+    //      ↓ No
+    // Create customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011d_AdminAttemptsToSyncCustomer_ReturnsOk()
@@ -234,11 +303,21 @@ public class AdminRoleTests
             response.StatusCode);
     }
 
-
-
-
     // ===================================================================================
     // AUTH-011e: Admin retrieves own customer record
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Own customer record
+    //      ↓
+    // Retrieve customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011e_AdminRetrievesOwnCustomerRecord_ReturnsOk()
@@ -271,12 +350,23 @@ public class AdminRoleTests
 
     }
 
-
-
-
-
     // ===================================================================================
-    // AUTH-011f: Admin updates customer
+    // AUTH-011f: Admin updates own customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Own customer record
+    //      ↓
+    // Update payload valid?
+    //      ↓ Yes
+    // Update customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011f_AdminUpdatesOwnCustomerProfile_ReturnsOk()
@@ -321,11 +411,21 @@ public class AdminRoleTests
     }
 
 
-
-
-
     // ===================================================================================
-    // AUTH-011g: Admin deletes customer
+    // AUTH-011g: Admin deletes own customer
+    //
+    // Workflow:
+    // JWT valid
+    //      ↓
+    // Role = Admin
+    //      ↓
+    // Customer exists?
+    //      ↓ Yes
+    // Own customer record
+    //      ↓
+    // Soft delete customer
+    //      ↓
+    // Return 200 OK
     // ===================================================================================
     [Fact]
     public async Task AUTH_011g_AdminDeletesOwnCustomerAccount_ReturnsOk()

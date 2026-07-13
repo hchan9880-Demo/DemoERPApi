@@ -7,7 +7,7 @@ namespace DemoERPApi.Tests.Fixtures;
 public class TestDatabaseFixture
 {
     private readonly string _connectionString =
-        "Your_Test_Database_Connection_String";
+        "DemoERPConnection";
 
     public async Task ResetAsync()
     {
