@@ -7,6 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="appsettings.Test.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
@@ -27,6 +31,14 @@
 		<Folder Include="sql\seed\" />
 		<Folder Include="sql\stored_procedures\" />
 		<Folder Include="src\DemoERPApi\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="appsettings.Test.json">
+	    <CopyToOutputDirectory>
+				PreserveNewest
+			</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

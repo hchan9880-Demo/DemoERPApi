@@ -1,118 +1,365 @@
-﻿using System;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
+using System.Text.Json;
+
+namespace DemoERPApi.Tests.Helpers;
 
 public static class TestAuthHelper
 {
-    private const string JwtKey = "ThisIsATestJwtKey123456789012345";
-    private const string JwtIssuer = "DemoERPApi";
-    private const string JwtAudience = "DemoERPApiUsers";
+    private const string JwtKey =
+        "DemoERP_Test_JWT_Key_12345678901234567890";
+
+
+    private const string JwtIssuer =
+        "DemoERPApi";
+
+
+    private const string JwtAudience =
+        "DemoERPApiUsers";
+
+
 
     // =====================================================
-    // ORIGINAL / REQUIRED TEST METHODS (DO NOT REMOVE)
+    // REAL LOGIN TOKEN
     // =====================================================
-
     public static void SetAdminToken(HttpClient client)
-        => SetToken(client, "admin", "Admin");
+    {
+        var response =
+            client.PostAsJsonAsync(
+                "/api/Auth/login",
+                new
+                {
+                    Username = "admin",
+                    Password = "Password123"
+                })
+            .Result;
 
+
+        var json =
+            response.Content
+                .ReadAsStringAsync()
+                .Result;
+
+
+        var result =
+            JsonSerializer.Deserialize<LoginResultDto>(
+                json,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+
+        if (result == null || string.IsNullOrEmpty(result.Token))
+        {
+            throw new Exception(
+                $"Admin login failed. Response: {json}");
+        }
+
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                result.Token);
+    }
+
+
+
+
+
+    // =====================================================
+    // CUSTOMER ROLE TOKEN
+    // =====================================================
     public static void SetOwnerToken(HttpClient client)
-        => SetToken(client, "owner1", "Customer");
-
-    public static void SetUnauthorizedUserToken(HttpClient client)
-        => SetToken(client, "user1", "Unauthorized");
-
-    // =====================================================
-    // ROLE VARIANTS (USED BY NEW TESTS / CLEAN STRUCTURE)
-    // =====================================================
-
-    public static void SetCustomerToken(HttpClient client)
-        => SetToken(client, "customer1", "Customer");
-
-    public static void SetQAToken(HttpClient client)
-        => SetToken(client, "qa1", "QA");
-
-    public static void SetTokenWithRole(HttpClient client, string role)
-        => SetToken(client, "test_user", role);
-
-    // =====================================================
-    // NEGATIVE TEST SUPPORT
-    // =====================================================
-
-    public static void SetInvalidToken(HttpClient client)
     {
         client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", "INVALID_TOKEN_123");
+            new AuthenticationHeaderValue(
+                "Bearer",
+                CreateJwtToken(
+                    "owner1",
+                    "Customer",
+                    "CRM103"));
     }
 
-    /// <summary>
-    /// Generates a signature with an expiration timestamp explicitly configured in the past.
-    /// </summary>
-    public static void SetExpiredToken(HttpClient client)
+
+
+
+
+    // =====================================================
+    // QA ROLE TOKEN
+    // =====================================================
+    public static void SetQAToken(HttpClient client)
     {
-        var jwt = GenerateRawToken("expired_user", "Admin", DateTime.UtcNow.AddHours(-2));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                CreateJwtToken(
+                    "qauserB",
+                    "QA",
+                    "CRM106"));
     }
 
-    /// <summary>
-    /// Generates a valid signature token and deliberately alters characters in the signature segment.
-    /// </summary>
-    public static void SetTamperedToken(HttpClient client)
+
+
+
+
+    // =====================================================
+    // GENERIC ROLE TOKEN
+    // =====================================================
+    public static void SetTokenWithRole(
+        HttpClient client,
+        string? role)
     {
-        var validJwt = GenerateRawToken("tampered_user", "Admin", DateTime.UtcNow.AddHours(1));
-        // Append characters to invalidate the cryptographic verification check block
-        var tamperedJwt = validJwt + "xyz";
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tamperedJwt);
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                CreateJwtToken(
+                    "test-user",
+                    role,
+                    "CRM001"));
     }
 
+
+
+
+    // =====================================================
+    // TOKEN WITHOUT ROLE CLAIM
+    // Used by AUTH missing-role tests
+    // =====================================================
+    public static void SetTokenWithoutRole(
+        HttpClient client)
+    {
+        var claims = new[]
+        {
+            new Claim(
+                "username",
+                "test-user"),
+
+
+            new Claim(
+                ClaimTypes.Name,
+                "test-user"),
+
+
+            new Claim(
+                JwtRegisteredClaimNames.Sub,
+                "test-user")
+        };
+
+
+        var token =
+            CreateToken(claims);
+
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+    }
+
+
+
+
+
+    // =====================================================
+    // CLEAR TOKEN
+    // =====================================================
     public static void ClearToken(HttpClient client)
     {
         client.DefaultRequestHeaders.Authorization = null;
     }
 
-    // =====================================================
-    // CORE JWT CREATION (DO NOT MODIFY LOGIC)
-    // =====================================================
 
-    private static void SetToken(HttpClient client, string username, string role)
+
+
+
+    // =====================================================
+    // INVALID JWT
+    // =====================================================
+    public static void SetInvalidToken(HttpClient client)
     {
-        var jwt = GenerateRawToken(username, role, DateTime.UtcNow.AddHours(1));
-
         client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", jwt);
+            new AuthenticationHeaderValue(
+                "Bearer",
+                "INVALID_TOKEN");
     }
 
-    /// <summary>
-    /// Extracted helper to isolate string signing tasks while preserving the core generation logic rules.
-    /// </summary>
-    private static string GenerateRawToken(string username, string role, DateTime expiration)
+
+
+
+
+    // =====================================================
+    // EXPIRED JWT
+    // =====================================================
+    public static void SetExpiredToken(HttpClient client)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                CreateExpiredJwtToken());
+    }
 
-        var safeRole = role ?? string.Empty;
-        var safeUsername = username ?? "anonymous";
 
+
+
+
+    // =====================================================
+    // TAMPERED JWT
+    // =====================================================
+    public static void SetTamperedToken(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                "eyJhbGciOiJIUzI1NiJ9.TAMPERED.SIGNATURE");
+    }
+
+
+
+
+
+    // =====================================================
+    // UNAUTHORIZED ROLE
+    // =====================================================
+    public static void SetUnauthorizedUserToken(
+        HttpClient client)
+    {
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                CreateJwtToken(
+                    "unauthorized-user",
+                    "Unauthorized",
+                    "CRM999"));
+    }
+
+
+
+
+
+    // =====================================================
+    // CREATE VALID JWT
+    // Match AuthController production claims
+    // =====================================================
+    private static string CreateJwtToken(
+        string username,
+        string? role,
+        string? customerId)
+    {
+        var claims = new List<Claim>
+{
+    new Claim(ClaimTypes.Name, username),
+    new Claim("CustomerId", customerId)
+};
+
+        if (!string.IsNullOrEmpty(role))
+        {
+            claims.Add(
+                new Claim(
+                    ClaimTypes.Role,
+                    role));
+        }
+
+
+        return CreateToken(claims);
+    }
+
+
+
+
+
+    // =====================================================
+    // CREATE TOKEN COMMON METHOD
+    // =====================================================
+    private static string CreateToken(
+       IEnumerable<Claim> claims)
+    {
+        var key =
+            new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(JwtKey));
+
+
+        var credentials =
+            new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
+
+
+        var token =
+            new JwtSecurityToken(
+                issuer: JwtIssuer,
+                audience: JwtAudience,
+                claims: claims,
+                expires:
+                    DateTime.UtcNow.AddMinutes(30),
+                signingCredentials:
+                    credentials);
+
+
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
+    }
+
+
+
+    // =====================================================
+    // CREATE EXPIRED JWT
+    // =====================================================
+    private static string CreateExpiredJwtToken()
+    {
         var claims = new[]
         {
-            new Claim("username", safeUsername),
-            new Claim(ClaimTypes.Name, safeUsername),
-            new Claim(ClaimTypes.Role, safeRole),
-            new Claim("role", safeRole),
-            new Claim("name", safeUsername)
+            new Claim(
+                "username",
+                "expired-user"),
+
+
+            new Claim(
+                ClaimTypes.Name,
+                "expired-user"),
+
+
+            new Claim(
+                ClaimTypes.Role,
+                "Customer"),
+
+
+            new Claim(
+                "role",
+                "Customer")
         };
 
-        var token = new JwtSecurityToken(
-            issuer: JwtIssuer,
-            audience: JwtAudience,
-            claims: claims,
-            expires: expiration,
-            signingCredentials: creds
-        );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var key =
+            new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(JwtKey));
+
+
+        var credentials =
+            new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
+
+
+
+        var token =
+            new JwtSecurityToken(
+                issuer: JwtIssuer,
+                audience: JwtAudience,
+                claims: claims,
+                expires:
+                    DateTime.UtcNow.AddMinutes(-10),
+                signingCredentials:
+                    credentials);
+
+
+
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
     }
 }

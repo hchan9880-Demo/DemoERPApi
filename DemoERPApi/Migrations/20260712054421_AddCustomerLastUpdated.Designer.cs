@@ -4,6 +4,7 @@ using DemoERPApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DemoERPApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260712054421_AddCustomerLastUpdated")]
+    partial class AddCustomerLastUpdated
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,7 @@ namespace DemoERPApi.Migrations
 
                     b.HasKey("CRMCustomerID");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("DemoERPApi.Models.CustomerAccess", b =>
@@ -77,7 +80,7 @@ namespace DemoERPApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CustomerAccess", (string)null);
+                    b.ToTable("CustomerAccess");
                 });
 
             modelBuilder.Entity("DemoERPApi.Models.User", b =>
@@ -114,7 +117,7 @@ namespace DemoERPApi.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("DemoERPApi.Models.CustomerAccess", b =>

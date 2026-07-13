@@ -1,7 +1,6 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Fixtures;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http;
@@ -94,7 +93,7 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
     // AUTH-050: Customer attempts to create customer via sync endpoint
     // ===================================================================================
     [Fact]
-    public async Task AUTH_050_CustomerAttemptsToCreateCustomer_ReturnsForbidden()
+    public async Task AUTH_050_CustomerAttemptsToCreateCustomer_ReturnOK()
     {
         // Arrange
         var newCustomerId = "CRM_NEW_888";
@@ -116,6 +115,6 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

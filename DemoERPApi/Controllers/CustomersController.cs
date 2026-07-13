@@ -1,12 +1,12 @@
 ﻿using DemoERPApi.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using System.Text.RegularExpressions;
 namespace DemoERPApi.Controllers;
 
@@ -18,94 +18,139 @@ public class CustomerController : ControllerBase
     private readonly string _connectionString;
 
 
-
     public CustomerController(IConfiguration configuration)
     {
         _connectionString =
             configuration.GetConnectionString("DemoERPConnection")
-            ?? throw new InvalidOperationException("Missing connection string");
+            ?? throw new InvalidOperationException(
+                "Missing connection string");
     }
 
 
+
+    // =====================================================
+    // VALIDATION HELPERS
+    // =====================================================
+
     private bool IsValidEmail(string email)
-        => Regex.IsMatch(email,
-            @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+    {
+        return !string.IsNullOrWhiteSpace(email)
+            &&
+            Regex.IsMatch(
+                email,
+                @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+    }
+
 
 
     private bool IsValidPhone(string phone)
-        => Regex.IsMatch(phone,
-            @"^\d{10}$");
+    {
+        return !string.IsNullOrWhiteSpace(phone)
+            &&
+            Regex.IsMatch(
+                phone,
+                @"^\d{10}$");
+    }
 
 
+
+    private bool ContainsSecurityPayload(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+
+
+        var value =
+            input.ToLower();
+
+
+        return value.Contains("<script")
+            || value.Contains("javascript:")
+            || value.Contains("union select")
+            || value.Contains("or 1=1");
+    }
+
+
+
+
+    // =====================================================
+    // CURRENT USER FROM JWT
+    // =====================================================
 
     private string? GetCurrentUser()
     {
         return User.Claims
             .FirstOrDefault(c =>
-                c.Type == "username" ||
-                c.Type == ClaimTypes.Name ||
-                c.Type == "name" ||
-                c.Type == "preferred_username" ||
-                c.Type == "sub")
+                c.Type == "username"
+                ||
+                c.Type == ClaimTypes.Name
+                ||
+                c.Type == JwtRegisteredClaimNames.Sub)
             ?.Value;
     }
 
 
+
+
+    // =====================================================
+    // ROLE FROM JWT
+    // =====================================================
+
     private string? GetRole()
     {
-        return User.FindFirst("role")?.Value
-            ?? User.FindFirst(ClaimTypes.Role)?.Value;
+        var claim =
+            User.Claims.FirstOrDefault(c =>
+                c.Type == ClaimTypes.Role
+                ||
+                string.Equals(
+                    c.Type,
+                    "role",
+                    StringComparison.OrdinalIgnoreCase));
+
+
+        return claim?.Value;
     }
+
+
+
+
+
+    // =====================================================
+    // CUSTOMER ACCESS CHECK
+    //
+    // FIX:
+    // Old version checked Users.CustomerID
+    // New version checks CustomerAccess table
+    // =====================================================
 
     private bool CanAccessCustomer(string crmId)
     {
-        var currentUser = GetCurrentUser();
-        var role = GetRole();
-
-
-        Console.WriteLine("==============================");
-        Console.WriteLine($"DEBUG CRM ID     : {crmId}");
-        Console.WriteLine($"DEBUG USER       : {currentUser}");
-        Console.WriteLine($"DEBUG ROLE       : {role}");
-        Console.WriteLine($"DEBUG CONNECTION : {_connectionString}");
-        Console.WriteLine("==============================");
+        var currentUser =
+            GetCurrentUser();
 
 
         if (string.IsNullOrWhiteSpace(currentUser))
-        {
-            Console.WriteLine("DEBUG USER IS NULL");
             return false;
-        }
-
-
-        if (string.Equals(
-            role,
-            "Admin",
-            StringComparison.OrdinalIgnoreCase))
-        {
-            Console.WriteLine("DEBUG ADMIN ACCESS");
-            return true;
-        }
 
 
 
         using var conn =
             new SqlConnection(_connectionString);
 
+
         conn.Open();
 
 
 
-        const string sql = @"
-        SELECT COUNT(*)
-        FROM CustomerAccess
-        WHERE CRMCustomerID = @crmId
-        AND LOWER(Username) = LOWER(@username)";
-
-
-
         using var cmd =
-            new SqlCommand(sql, conn);
+            new SqlCommand(@"
+            SELECT COUNT(*)
+            FROM CustomerAccess
+            WHERE CRMCustomerID = @crmId
+            AND LOWER(LTRIM(RTRIM(Username))) =
+                LOWER(LTRIM(RTRIM(@username)))
+        ",
+            conn);
 
 
 
@@ -121,20 +166,12 @@ public class CustomerController : ControllerBase
 
 
         var count =
-            Convert.ToInt32(cmd.ExecuteScalar());
-
-
-
-        Console.WriteLine(
-            $"DEBUG ACCESS COUNT : {count}"
-        );
+            Convert.ToInt32(
+                cmd.ExecuteScalar());
 
 
         return count > 0;
     }
-
-
-
 
 
 
@@ -148,50 +185,51 @@ public class CustomerController : ControllerBase
     public IActionResult GetCustomer(string customerId)
     {
         if (string.IsNullOrWhiteSpace(customerId))
-        {
-            return BadRequest("CustomerID required");
-        }
-
-
-        var currentUser = GetCurrentUser();
-        var role = GetRole();
+            return BadRequest(
+                "CustomerID required");
 
 
 
-        if (string.IsNullOrWhiteSpace(currentUser))
-        {
-            return Unauthorized();
-        }
+        var currentUser =
+            GetCurrentUser();
 
 
+        var role =
+            GetRole();
 
         if (string.IsNullOrWhiteSpace(role))
+            return Forbid();
+
+        if (!HasValidRole())
         {
             return Forbid();
         }
+
+        if (string.IsNullOrWhiteSpace(currentUser))
+            return Unauthorized();
+
+
+
+
 
 
 
         using var conn =
             new SqlConnection(_connectionString);
 
+
         conn.Open();
 
 
 
-        // =====================================================
-        // STEP 1
-        // Check customer exists first
-        // Invalid customer = 404
-        // =====================================================
-
         using var existsCmd =
             new SqlCommand(@"
-            SELECT COUNT(*)
-            FROM Customers
-            WHERE CRMCustomerID = @id
-            AND ISNULL(IsDeleted,0)=0",
-                conn);
+                SELECT COUNT(*)
+                FROM Customers
+                WHERE CRMCustomerID=@id
+                AND ISNULL(IsDeleted,0)=0
+            ",
+            conn);
 
 
 
@@ -201,30 +239,20 @@ public class CustomerController : ControllerBase
 
 
 
-        int exists =
-            Convert.ToInt32(
-                existsCmd.ExecuteScalar());
-
-
-
-        if (exists == 0)
+        if (Convert.ToInt32(
+                existsCmd.ExecuteScalar()) == 0)
         {
             return NotFound();
         }
 
 
 
-        // =====================================================
-        // STEP 2
-        // Authorization
-        // Admin can access everything
-        // Customer can access only assigned CRM
-        // =====================================================
-
-        if (!role.Equals(
+        if (!string.Equals(
+                role,
                 "Admin",
                 StringComparison.OrdinalIgnoreCase))
         {
+
             if (!CanAccessCustomer(customerId))
             {
                 return Forbid();
@@ -233,23 +261,19 @@ public class CustomerController : ControllerBase
 
 
 
-        // =====================================================
-        // STEP 3
-        // Return customer data
-        // =====================================================
-
         using var cmd =
             new SqlCommand(@"
-            SELECT
-                CRMCustomerID,
-                FirstName,
-                LastName,
-                Email,
-                Phone
-            FROM Customers
-            WHERE CRMCustomerID=@id
-            AND ISNULL(IsDeleted,0)=0",
-                conn);
+                SELECT
+                    CRMCustomerID,
+                    FirstName,
+                    LastName,
+                    Email,
+                    Phone
+                FROM Customers
+                WHERE CRMCustomerID=@id
+                AND ISNULL(IsDeleted,0)=0
+            ",
+            conn);
 
 
 
@@ -265,9 +289,7 @@ public class CustomerController : ControllerBase
 
 
         if (!reader.Read())
-        {
             return NotFound();
-        }
 
 
 
@@ -283,8 +305,8 @@ public class CustomerController : ControllerBase
 
             LastName =
                 reader["LastName"] == DBNull.Value
-                ? null
-                : reader["LastName"].ToString(),
+                    ? null
+                    : reader["LastName"].ToString(),
 
 
             Email =
@@ -297,24 +319,14 @@ public class CustomerController : ControllerBase
     }
 
 
-
-
-
-
-
-
-
-
     // =====================================================
     // POST /api/Customer/sync
     // =====================================================
-
 
     [HttpPost("sync")]
     public IActionResult SyncCustomer(
         [FromBody] CustomerDto customer)
     {
-
         if (customer == null)
             return BadRequest("Payload required");
 
@@ -331,9 +343,22 @@ public class CustomerController : ControllerBase
             return BadRequest("Phone must be 10 digits");
 
 
+        if (ContainsSecurityPayload(customer.FirstName)
+            ||
+            ContainsSecurityPayload(customer.LastName))
+        {
+            return BadRequest(
+                "Malicious scripts or expressions detected.");
+        }
 
-        var currentUser = GetCurrentUser();
-        var role = GetRole();
+
+
+        var currentUser =
+            GetCurrentUser();
+
+
+        var role =
+            GetRole();
 
 
 
@@ -342,90 +367,167 @@ public class CustomerController : ControllerBase
 
 
 
-        if (role != "Admin" &&
-            role != "Customer")
-        {
+        if (string.IsNullOrWhiteSpace(role))
             return Forbid();
+
+
+
+        if (!HasValidRole())
+            return Forbid();
+
+
+     //   var role = GetRole();
+
+        bool isAdmin =
+            string.Equals(
+                role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase);
+
+
+        bool isQA =
+            string.Equals(
+                role,
+                "QA",
+                StringComparison.OrdinalIgnoreCase);
+
+
+        bool isCustomer =
+            string.Equals(
+                role,
+                "Customer",
+                StringComparison.OrdinalIgnoreCase);
+
+
+
+        if (!isAdmin && !isQA && !isCustomer)
+            return Forbid();
+
+        // QA users can only sync customers assigned to them
+        if (isQA)
+        {
+            if (!CanAccessCustomer(customer.CRMCustomerID))
+            {
+                return Forbid();
+            }
         }
-
-
-
 
         using var conn =
             new SqlConnection(_connectionString);
 
+
         conn.Open();
 
 
+        // =====================================================
+        // CHECK FOR EXISTING CUSTOMER
+        // =====================================================
 
-        using var check =
+        using var existing =
             new SqlCommand(@"
-                SELECT COUNT(*)
-                FROM Customers
-                WHERE CRMCustomerID=@id
-                AND IsDeleted=0",
-                conn);
+        SELECT IsDeleted
+        FROM Customers
+        WHERE CRMCustomerID = @id
+    ", conn);
 
-
-
-        check.Parameters.AddWithValue("@id",
+        existing.Parameters.AddWithValue(
+            "@id",
             customer.CRMCustomerID);
 
+        var result = existing.ExecuteScalar();
 
+        if (result != null)
+        {
+            bool isDeleted = Convert.ToBoolean(result);
 
-        if (Convert.ToInt32(check.ExecuteScalar()) > 0)
-            return Conflict("Customer already exists");
+            // ================================================
+            // ACTIVE CUSTOMER -> DUPLICATE
+            // ================================================
+            if (!isDeleted)
+            {
+                return Conflict("Customer already exists.");
+            }
 
+            // ================================================
+            // SOFT-DELETED CUSTOMER -> RESTORE
+            // ================================================
+            using var restore =
+                new SqlCommand(@"
+            UPDATE Customers
+            SET
+                FirstName   = @first,
+                LastName    = @last,
+                Email       = @email,
+                Phone       = @phone,
+                IsDeleted   = 0,
+                LastUpdated = GETDATE()
+            WHERE CRMCustomerID = @id
+        ", conn);
 
+            restore.Parameters.AddWithValue("@id", customer.CRMCustomerID);
+            restore.Parameters.AddWithValue("@first", customer.FirstName);
+            restore.Parameters.AddWithValue("@last",
+                customer.LastName ?? (object)DBNull.Value);
+            restore.Parameters.AddWithValue("@email", customer.Email);
+            restore.Parameters.AddWithValue("@phone", customer.Phone);
 
+            restore.ExecuteNonQuery();
+
+            return Ok("Customer restored successfully.");
+        }
+
+        // =====================================================
+        // INSERT NEW CUSTOMER
+        // =====================================================
 
         using var insert =
             new SqlCommand(@"
-                INSERT INTO Customers
-                (
-                    CRMCustomerID,
-                    FirstName,
-                    LastName,
-                    Email,
-                    Phone,
-                    IsDeleted
-                )
-                VALUES
-                (
-                    @id,
-                    @first,
-                    @last,
-                    @email,
-                    @phone,
-                    0
-                )",
-                conn);
+        INSERT INTO Customers
+        (
+            CRMCustomerID,
+            FirstName,
+            LastName,
+            Email,
+            Phone,
+            IsDeleted,
+            LastUpdated
+        )
+        VALUES
+        (
+            @id,
+            @first,
+            @last,
+            @email,
+            @phone,
+            0,
+            GETDATE()
+        )
+    ", conn);
 
-
-
-        insert.Parameters.AddWithValue("@id",
-            customer.CRMCustomerID);
-
-        insert.Parameters.AddWithValue("@first",
-            customer.FirstName);
-
+        insert.Parameters.AddWithValue("@id", customer.CRMCustomerID);
+        insert.Parameters.AddWithValue("@first", customer.FirstName);
         insert.Parameters.AddWithValue("@last",
-            customer.LastName ?? "");
-
-        insert.Parameters.AddWithValue("@email",
-            customer.Email);
-
-        insert.Parameters.AddWithValue("@phone",
-            customer.Phone);
-
-
+            customer.LastName ?? (object)DBNull.Value);
+        insert.Parameters.AddWithValue("@email", customer.Email);
+        insert.Parameters.AddWithValue("@phone", customer.Phone);
 
         insert.ExecuteNonQuery();
 
 
 
-        using var access =
-            new SqlCommand(@"
+
+
+
+
+
+        // =====================================================
+        // CREATE CUSTOMER ACCESS
+        // =====================================================
+
+        if (!isAdmin)
+        {
+            using var access =
+                new SqlCommand(@"
                 INSERT INTO CustomerAccess
                 (
                     CRMCustomerID,
@@ -435,24 +537,30 @@ public class CustomerController : ControllerBase
                 (
                     @id,
                     @username
-                )",
+                )
+            ",
                 conn);
 
 
 
-        access.Parameters.AddWithValue("@id",
-            customer.CRMCustomerID);
-
-        access.Parameters.AddWithValue("@username",
-            currentUser);
+            access.Parameters.AddWithValue(
+                "@id",
+                customer.CRMCustomerID);
 
 
+            access.Parameters.AddWithValue(
+                "@username",
+                currentUser);
 
-        access.ExecuteNonQuery();
+
+
+            access.ExecuteNonQuery();
+        }
 
 
 
-        return Ok("Customer synced successfully");
+        return Ok(
+            "Customer synced successfully");
     }
 
 
@@ -464,74 +572,85 @@ public class CustomerController : ControllerBase
     // =====================================================
     // PUT /api/Customer/{customerId}
     // =====================================================
+
     [HttpPut("{customerId}")]
     public IActionResult UpdateCustomer(
-      string customerId,
-      [FromBody] CustomerDto customer)
+        string customerId,
+        [FromBody] CustomerDto customer)
     {
+        if (string.IsNullOrWhiteSpace(customerId))
+            return BadRequest(
+                "CustomerID required");
+
+
+
+        if (customer == null)
+            return BadRequest(
+                "Customer data required");
+
+
+
+        if (!string.IsNullOrWhiteSpace(customer.Email)
+            &&
+            !IsValidEmail(customer.Email))
+        {
+            return BadRequest(
+                "Invalid email format");
+        }
+
+
+
+        if (string.IsNullOrWhiteSpace(customer.Phone))
+            return BadRequest(
+                "Phone required");
+
+
+
+        if (!IsValidPhone(customer.Phone))
+            return BadRequest(
+                "Phone must be exactly 10 digits");
+
+
+
+        if (ContainsSecurityPayload(customer.FirstName)
+            ||
+            ContainsSecurityPayload(customer.LastName))
+        {
+            return BadRequest(
+                "Malicious scripts detected.");
+        }
+
+
+        var currentUser = GetCurrentUser();
         var role = GetRole();
 
         if (string.IsNullOrWhiteSpace(role))
             return Forbid();
 
+        if (!HasValidRole())
+            return Forbid();
 
-        // ==============================
-        // Validate customer ID
-        // ==============================
+        if (string.IsNullOrWhiteSpace(currentUser))
+            return Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(customerId))
-            return BadRequest("CustomerID is required");
-
-
-        // ==============================
-        // Validate request body (Email)
-        // ==============================
-
-        if (customer == null)
-            return BadRequest("Customer data is required");
-
-
-        if (!string.IsNullOrWhiteSpace(customer.Email))
-        {
-            if (!new System.ComponentModel.DataAnnotations
-                .EmailAddressAttribute()
-                .IsValid(customer.Email))
-            {
-                return BadRequest("Invalid email format");
-            }
-        }
-        // ==============================
-        // Validate request body (Phone)
-        // ==============================
-
-        if (string.IsNullOrWhiteSpace(customer.Phone))
-        {
-            return BadRequest("Phone is required");
-        }
-
-        if (!IsValidPhone(customer.Phone))
-        {
-            return BadRequest("Phone must be exactly 10 digits");
-        }
 
         using var conn =
             new SqlConnection(_connectionString);
 
+
         conn.Open();
 
 
-
-        // ==============================
-        // Check customer exists
-        // ==============================
 
         using var exists =
             new SqlCommand(@"
             SELECT COUNT(*)
             FROM Customers
             WHERE CRMCustomerID=@id
-            AND IsDeleted=0",
-                conn);
+            AND ISNULL(IsDeleted,0)=0
+        ",
+            conn);
+
 
 
         exists.Parameters.AddWithValue(
@@ -539,40 +658,75 @@ public class CustomerController : ControllerBase
             customerId);
 
 
-        if (Convert.ToInt32(exists.ExecuteScalar()) == 0)
-            return NotFound();
 
-
-
-        // ==============================
-        // Authorization
-        // ==============================
-
-        if (role != "Admin" &&
-            !CanAccessCustomer(customerId))
+        if (Convert.ToInt32(
+                exists.ExecuteScalar()) == 0)
         {
-            return Forbid();
+            return NotFound();
         }
 
 
 
-        // ==============================
-        // Update customer
-        // ==============================
+
+        if (!string.Equals(
+                role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            if (!CanAccessCustomer(customerId))
+                return Forbid();
+        }
+
+
+
+        // =====================================================
+        // DUPLICATE CRM CUSTOMER ID CHECK
+        // =====================================================
+
+        if (!string.Equals(
+                customerId,
+                customer.CRMCustomerID,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            using var duplicate = new SqlCommand(@"
+        SELECT COUNT(*)
+        FROM Customers
+        WHERE CRMCustomerID = @newId
+        AND ISNULL(IsDeleted,0)=0
+    ", conn);
+
+            duplicate.Parameters.AddWithValue(
+                "@newId",
+                customer.CRMCustomerID);
+
+            if (Convert.ToInt32(
+                    duplicate.ExecuteScalar()) > 0)
+            {
+                return Conflict("Customer already exists.");
+            }
+        }
+
+
+
+
 
         using var update =
             new SqlCommand(@"
-            UPDATE Customers
-            SET
-                FirstName = COALESCE(@first, FirstName),
-                LastName  = COALESCE(@last, LastName),
-                Email     = COALESCE(@email, Email),
-                Phone     = COALESCE(@phone, Phone)
+                 UPDATE Customers
+                SET
+                    CRMCustomerID=@newId,
+                    FirstName=@first,
+                    LastName=@last,
+                    Email=@email,
+                    Phone=@phone,
+                    LastUpdated=GETDATE()
+                WHERE CRMCustomerID=@id
+        ",
+            conn);
 
-            WHERE CRMCustomerID=@id",
-                conn);
-
-
+        update.Parameters.AddWithValue(
+            "@newId",
+            customer.CRMCustomerID);
 
         update.Parameters.AddWithValue(
             "@id",
@@ -581,26 +735,28 @@ public class CustomerController : ControllerBase
 
         update.Parameters.AddWithValue(
             "@first",
-            (object?)customer.FirstName ?? DBNull.Value);
+            customer.FirstName ?? "");
 
 
         update.Parameters.AddWithValue(
             "@last",
-            (object?)customer.LastName ?? DBNull.Value);
+            customer.LastName ?? "");
 
 
         update.Parameters.AddWithValue(
             "@email",
-            (object?)customer.Email ?? DBNull.Value);
+            customer.Email ?? "");
 
 
         update.Parameters.AddWithValue(
             "@phone",
-            (object?)customer.Phone ?? DBNull.Value);
+            customer.Phone);
 
 
 
-        var rows = update.ExecuteNonQuery();
+        var rows =
+            update.ExecuteNonQuery();
+
 
 
         if (rows == 0)
@@ -610,21 +766,12 @@ public class CustomerController : ControllerBase
 
         return Ok(new
         {
-            message = "Customer updated successfully",
-            customerId = customerId
+            message =
+                "Customer updated successfully",
+
+            customerId
         });
     }
-
-
-
-
-
-
-
-
-
-
-
 
     // =====================================================
     // DELETE /api/Customer/{customerId}
@@ -633,96 +780,142 @@ public class CustomerController : ControllerBase
     [HttpDelete("{customerId}")]
     public IActionResult DeleteCustomer(string customerId)
     {
-        try
+        if (string.IsNullOrWhiteSpace(customerId))
+            return BadRequest(
+                "CustomerID required");
+
+
+
+        var currentUser =
+            GetCurrentUser();
+
+
+        var role =
+            GetRole();
+
+
+
+        if (string.IsNullOrWhiteSpace(currentUser))
+            return Unauthorized();
+
+
+
+        if (string.IsNullOrWhiteSpace(role))
+            return Forbid();
+
+
+
+
+        bool isAdmin =
+            string.Equals(
+                role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase);
+
+
+
+        if (!isAdmin)
         {
-            if (string.IsNullOrWhiteSpace(customerId))
-                return BadRequest("CustomerID required");
-
-
-            var role = GetRole();
-
-
-            if (string.IsNullOrWhiteSpace(role))
-                return Forbid();
-
-
-
-            if (role != "Admin" &&
-               !CanAccessCustomer(customerId))
+            if (!CanAccessCustomer(customerId))
             {
                 return Forbid();
             }
+        }
 
 
 
-            using var conn =
-                new SqlConnection(_connectionString);
-
-            conn.Open();
+        using var conn =
+            new SqlConnection(_connectionString);
 
 
+        conn.Open();
 
-            using var exists =
-                new SqlCommand(@"
-                SELECT COUNT(*)
-                FROM Customers
-                WHERE CRMCustomerID = @id
-                AND IsDeleted = 0",
-                    conn);
+        // =====================================================
+        // EXISTING ACTIVE CUSTOMER CHECK
+        // =====================================================
 
+        using var exists =
+            new SqlCommand(@"
+        SELECT COUNT(*)
+        FROM Customers
+        WHERE CRMCustomerID = @id
+          AND ISNULL(IsDeleted,0)=0
+    ", conn);
 
+        exists.Parameters.AddWithValue("@id", customerId);
 
-            exists.Parameters.AddWithValue("@id", customerId);
+        var found = Convert.ToInt32(exists.ExecuteScalar());
 
+        if (found == 0)
+        {
+            return NotFound();
+        }
 
+        // =====================================================
+        // AUTHORIZATION
+        // =====================================================
 
-            int count =
-                Convert.ToInt32(exists.ExecuteScalar());
+         isAdmin =
+            string.Equals(
+                role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase);
 
-
-
-            if (count == 0)
+        if (!isAdmin)
+        {
+            if (!CanAccessCustomer(customerId))
             {
-                return NotFound();
+                return Forbid();
             }
+        }
 
 
 
-            using var delete =
-                new SqlCommand(@"
-                UPDATE Customers
-                SET IsDeleted = 1
-                WHERE CRMCustomerID = @id",
-                    conn);
+
+        // =====================================================
+        // SOFT DELETE
+        // =====================================================
+
+        using var delete =
+            new SqlCommand(@"
+            UPDATE Customers
+            SET
+                IsDeleted = 1,
+                LastUpdated = GETDATE()
+            WHERE CRMCustomerID=@id
+        ",
+            conn);
 
 
 
-            delete.Parameters.AddWithValue("@id", customerId);
+        delete.Parameters.AddWithValue(
+            "@id",
+            customerId);
 
 
+
+        var rows =
             delete.ExecuteNonQuery();
 
 
-            return Ok("Customer deleted successfully");
 
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(
-                500,
-                ex.Message);
-        }
+        if (rows == 0)
+            return NotFound();
+
+
+
+        return Ok(
+            "Customer deleted successfully");
     }
 
 
 
 
+
+
+
     // =====================================================
-    // DebugCustomers /api/Customer/DebugCustomers
-    // =====================================================
-    // =====================================================
-    // DebugCustomers
-    // GET /api/Customer/debug/customers/list
+    // DEBUG: LIST CUSTOMERS
     // =====================================================
 
     [AllowAnonymous]
@@ -732,7 +925,9 @@ public class CustomerController : ControllerBase
         using var conn =
             new SqlConnection(_connectionString);
 
+
         conn.Open();
+
 
 
         using var cmd =
@@ -741,18 +936,24 @@ public class CustomerController : ControllerBase
                 conn);
 
 
-        var result = new List<string>();
+
+        var result =
+            new List<string>();
 
 
-        using var reader = cmd.ExecuteReader();
+
+        using var reader =
+            cmd.ExecuteReader();
+
 
 
         while (reader.Read())
         {
             result.Add(
-                reader["CRMCustomerID"].ToString()!
-            );
+                reader["CRMCustomerID"]
+                .ToString()!);
         }
+
 
 
         return Ok(result);
@@ -761,41 +962,164 @@ public class CustomerController : ControllerBase
 
 
 
-    // =====================================================
-    // DebugAccess 
-    // =====================================================
 
 
+
+    // =====================================================
+    // DEBUG: CUSTOMER ACCESS
+    // =====================================================
 
     [AllowAnonymous]
     [HttpGet("debug/access")]
     public IActionResult DebugAccess()
     {
-        using var conn = new SqlConnection(_connectionString);
+        using var conn =
+            new SqlConnection(_connectionString);
+
+
         conn.Open();
 
-        var list = new List<object>();
 
-        using var cmd = new SqlCommand(
-            "SELECT Username, CRMCustomerID FROM CustomerAccess",
-            conn);
 
-        using var reader = cmd.ExecuteReader();
+        var list =
+            new List<object>();
+
+
+
+        using var cmd =
+            new SqlCommand(
+                "SELECT Username, CRMCustomerID FROM CustomerAccess",
+                conn);
+
+
+
+        using var reader =
+            cmd.ExecuteReader();
+
+
 
         while (reader.Read())
         {
             list.Add(new
             {
-                Username = reader["Username"].ToString(),
-                CRMCustomerID = reader["CRMCustomerID"].ToString()
+                Username =
+                    reader["Username"]
+                    .ToString(),
+
+                CRMCustomerID =
+                    reader["CRMCustomerID"]
+                    .ToString()
             });
         }
 
+
+
+        return Ok(list);
+    }
+
+
+
+
+
+
+
+    // =====================================================
+    // DEBUG: WHO AM I
+    // =====================================================
+
+    [Authorize]
+    [HttpGet("debug/whoami")]
+    public IActionResult WhoAmI()
+    {
         return Ok(new
         {
-            Connection = _connectionString,
-            Data = list
+            Name =
+                User.Identity?.Name,
+
+
+            Authenticated =
+                User.Identity?.IsAuthenticated,
+
+
+            Claims =
+                User.Claims.Select(c => new
+                {
+                    c.Type,
+                    c.Value
+                })
         });
     }
+    private bool HasValidRole()
+    {
+        var role = GetRole();
+
+        return
+            string.Equals(role, "Admin",
+                StringComparison.OrdinalIgnoreCase)
+            ||
+            string.Equals(role, "QA",
+                StringComparison.OrdinalIgnoreCase)
+            ||
+            string.Equals(role, "Customer",
+                StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string CreateJwtToken(
+    string username,
+    string? role,
+    string crmId)
+    {
+        var claims = new List<Claim>
+    {
+        new Claim(
+            JwtRegisteredClaimNames.Sub,
+            username),
+
+        new Claim(
+            "username",
+            username),
+
+        new Claim(
+            "CRMCustomerID",
+            crmId)
+    };
+
+
+        // Only add role when supplied
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            claims.Add(
+                new Claim(
+                    ClaimTypes.Role,
+                    role));
+        }
+
+
+        var key =
+            new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    "your-test-secret-key"));
+
+
+        var credentials =
+            new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
+
+
+        var token =
+            new JwtSecurityToken(
+                claims: claims,
+                expires:
+                    DateTime.UtcNow.AddMinutes(30),
+                signingCredentials:
+                    credentials);
+
+
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
+    }
+
+
 
 }

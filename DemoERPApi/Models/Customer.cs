@@ -17,5 +17,7 @@ namespace DemoERPApi.Models
 
         public bool IsDeleted { get; set; }
 
+        public DateTime LastUpdated { get; set; }
+
     }
 }

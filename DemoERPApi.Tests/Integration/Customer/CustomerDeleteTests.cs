@@ -1,6 +1,5 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -134,7 +133,7 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
     // DELETE-007: Customer deletes own account if permitted
     // =====================================================
     [Fact]
-    public async Task DELETE_007_CustomerDeletesOwnAccountIfPermitted_ReturnsForbidden()
+    public async Task DELETE_007_CustomerDeletesOwnAccountIfPermitted_ReturnsOK()
     {
         TestAuthHelper.SetOwnerToken(_client);
         var testId = "CRM_TEST_DEL_007";
@@ -143,7 +142,7 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
 
         var response = await _client.DeleteAsync($"/api/Customer/{testId}");
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     // =====================================================

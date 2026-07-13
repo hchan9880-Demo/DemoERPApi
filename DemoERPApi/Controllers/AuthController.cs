@@ -1,9 +1,10 @@
 ﻿using DemoERPApi.Data;
 using DemoERPApi.Models;
-
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -24,12 +25,17 @@ public class AuthController : ControllerBase
         _configuration = configuration;
     }
 
-    // =========================
+    // =====================================================
     // REGISTER
-    // =========================
+    // =====================================================
     [HttpPost("register")]
-    public IActionResult Register(RegisterRequest request)
+    public IActionResult Register([FromBody] RegisterRequest request)
     {
+        if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Username and Password are required.");
+        }
+
         var existingUser = _context.Users
             .FirstOrDefault(u => u.Username == request.Username);
 
@@ -42,7 +48,8 @@ public class AuthController : ControllerBase
         {
             Username = request.Username,
             Role = "User",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            IsActive = true
         };
 
         _context.Users.Add(user);
@@ -51,24 +58,34 @@ public class AuthController : ControllerBase
         return Ok("User created");
     }
 
-
-    // =========================
-    // generatehash
-    // =========================
+    // =====================================================
+    // GENERATE HASH
+    // =====================================================
     [HttpGet("generatehash")]
     public IActionResult GenerateHash(string password)
     {
-        var hash = BCrypt.Net.BCrypt.HashPassword(password);
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return BadRequest("Password parameter is required.");
+        }
 
+        var hash = BCrypt.Net.BCrypt.HashPassword(password);
         return Ok(hash);
     }
 
-    // =========================
+    // =====================================================
     // LOGIN
-    // =========================
+    // =====================================================
+    [AllowAnonymous]
     [HttpPost("login")]
-    public IActionResult Login(DemoERPApi.Models.LoginRequest request)
+    public IActionResult Login([FromBody] DemoERPApi.Models.LoginRequest request)
     {
+        // CRITICAL FIX FOR AUTH_008: Validate parameters BEFORE doing database lookups
+        if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Username and Password are required.");
+        }
+
         var user = _context.Users
             .FirstOrDefault(u => u.Username == request.Username);
 
@@ -82,40 +99,75 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var token = GenerateToken(user.Username, user.Role);
 
-        return Ok(new { token });
+
+
+        var token = GenerateToken(user.Username, user.Role);
+        return Ok(new { Token = token }); // Capitalized 'Token' to match the DTO expectation
+
+
+
+
     }
 
-    // =========================
-    // JWT TOKEN
-    // =========================
+    // =====================================================
+    // JWT TOKEN GENERATION
+    // =====================================================
     private string GenerateToken(string username, string role)
     {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
+        // Fall back to the exact hardcoded keys matching Program.cs if missing from configuration
+        var keyStr = _configuration["JwtSettings:Key"] ?? "ThisIsATestJwtKey123456789012345";
+        var issuer = _configuration["JwtSettings:Issuer"] ?? "DemoERPApi";
+        var audience = _configuration["JwtSettings:Audience"] ?? "DemoERPApiUsers";
 
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-
-        var creds = new SigningCredentials(
-            key,
-            SecurityAlgorithms.HmacSha256);
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyStr));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-    new Claim("username", username),
-    new Claim(ClaimTypes.Name, username),
-    new Claim(ClaimTypes.Role, role),
-    new Claim("role", role)
-};
+            new Claim("username", username),
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ClaimTypes.Role, role),
+            new Claim("role", role)
+        };
 
         var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
+            issuer: issuer,
+            audience: audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(60),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+
+    [Authorize]
+    [HttpGet("whoami")]
+    public IActionResult WhoAmI()
+    {
+        return Ok(new
+        {
+            IsAuthenticated = User.Identity?.IsAuthenticated,
+
+            Username =
+                User.Identity?.Name,
+
+            Claims =
+                User.Claims.Select(c => new
+                {
+                    c.Type,
+                    c.Value
+                })
+        });
+    }
+
+
+
+
+
+
+
+
+
 }

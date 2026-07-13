@@ -1,7 +1,6 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Fixtures;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http;

@@ -1,7 +1,6 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Fixtures;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http;
@@ -86,8 +85,18 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task SYNC_003_QACreatesAssignedCustomer_IfPermitted_ReturnsOk()
     {
         var qaAssignedId = "CRM_QA_777";
+
         await _db.DeleteCustomer(qaAssignedId);
+
+
+        // ADD THIS
+        await _db.AssignCustomerAccess(
+            "qauserB",
+            qaAssignedId);
+
+
         TestAuthHelper.SetQAToken(_client);
+
 
         var request = new CustomerDto
         {
@@ -98,9 +107,16 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
             Phone = "6045554321"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var response =
+            await _client.PostAsJsonAsync(
+                "/api/Customer/sync",
+                request);
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
     }
 
     // =====================================================

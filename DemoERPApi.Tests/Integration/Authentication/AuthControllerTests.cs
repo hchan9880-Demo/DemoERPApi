@@ -1,6 +1,6 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http.Json;
@@ -8,7 +8,7 @@ using System.Text;
 using Xunit;
 
 namespace DemoERPApi.Tests.Integration.Authentication;
-
+using DemoERPApi.Tests.Helpers;
 /*
 Test Cases Covered:
 AUTH-001	Valid login - admin	                  Valid username/password for admin

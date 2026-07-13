@@ -1,13 +1,15 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DemoERPApi.Tests.Integration.Security;
 
@@ -30,16 +32,36 @@ SEC-014    /api/Customer/{id}    GET    Customer retrieves own profile         2
 SEC-015    /api/Customer/{id}    PUT    Customer updates own profile           200 OK
 */
 
+
+
+
+
+
+
+
 public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
+    private readonly ITestOutputHelper _output;
+
     private const string TARGET_ID = "SEC_TEST_99";
 
-    public SecurityTests(WebApplicationFactory<Program> factory)
+
+    public SecurityTests(
+        WebApplicationFactory<Program> factory,
+        ITestOutputHelper output)
     {
-        DatabaseResetHelper.Reset(factory.Services);
-        _client = factory.CreateClient();
+        _output = output;
+
+        DatabaseResetHelper.Reset(
+            factory.Services);
+
+        _client =
+            factory.CreateClient();
     }
+
+
+
 
     private static CustomerDto GetValidPayload(string customId = TARGET_ID) => new()
     {
@@ -186,25 +208,72 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
     // DATA OWNERSHIP / IDENTITY BUSINESS RULES (SEC-014 to SEC-015)
     // =====================================================
 
+
+
     [Fact]
     public async Task SEC_014_GetCustomer_CustomerRetrievesOwnCustomerRecord_ReturnsOk()
     {
         var testId = "SEC_OWN_014";
 
-        // Seed a target customer context using an admin token first
-        TestAuthHelper.SetAdminToken(_client);
-        await CustomerSeedHelper.SeedCustomer(_client, testId);
 
-        // Switch scope to Owner context matching the seeded token subject
+        TestAuthHelper.SetAdminToken(_client);
+
+
+        await CustomerSeedHelper.SeedCustomer(
+            _client,
+            testId,
+            _output);
+
+
+        await CustomerSeedHelper.AssignCustomerAccess(
+            testId,
+            "owner1",
+            _output);
+
+
         TestAuthHelper.SetOwnerToken(_client);
 
-        var response = await _client.GetAsync($"/api/Customer/{testId}");
-        
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var returnedCustomer = await response.Content.ReadFromJsonAsync<CustomerDto>();
+
+        DebugCurrentToken();
+
+
+        var response =
+            await _client.GetAsync(
+                $"/api/Customer/{testId}");
+
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
+
+
+        var returnedCustomer =
+            await response.Content.ReadFromJsonAsync<CustomerDto>();
+
+
         Assert.NotNull(returnedCustomer);
-        Assert.Equal(testId, returnedCustomer.CRMCustomerID);
+
+
+        Assert.Equal(
+            testId,
+            returnedCustomer.CRMCustomerID);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     [Fact]
     public async Task SEC_015_UpdateCustomer_CustomerUpdatesOwnProfile_ReturnsOk()
@@ -230,5 +299,28 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         
         Assert.NotNull(verifiedCustomer);
         Assert.Equal("SecurityUpdated", verifiedCustomer.FirstName);
+    }
+
+
+
+    private void DebugCurrentToken()
+    {
+        var token =
+            _client.DefaultRequestHeaders.Authorization?.Parameter;
+
+        if (string.IsNullOrEmpty(token))
+            return;
+
+
+        var jwt =
+            new JwtSecurityTokenHandler()
+                .ReadJwtToken(token);
+
+
+        foreach (var claim in jwt.Claims)
+        {
+            _output.WriteLine(
+                $"{claim.Type} = {claim.Value}");
+        }
     }
 }

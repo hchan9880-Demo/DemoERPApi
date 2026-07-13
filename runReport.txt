@@ -1,0 +1,5 @@
+PowerShell
+dotnet test --logger "trx;LogFileName=test_results.trx"
+
+
+PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtmlBoth.ps1

@@ -1,7 +1,6 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Fixtures;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http.Json;
@@ -34,30 +33,66 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
         helper.SeedCustomers().GetAwaiter().GetResult();
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // =====================================================
     // UPDATE-001: Duplicate customer conflict on update
     // =====================================================
     [Fact]
     public async Task UPDATE_001_UpdatePayloadDuplicatesAnotherCustomer_ReturnsConflict()
     {
+        // Arrange
+
+        await CustomerSeedHelper.SeedCustomer(
+            _client,
+            "CRM100");
+
+        await CustomerSeedHelper.SeedCustomer(
+            _client,
+            "CRM101");
+
+
         TestAuthHelper.SetAdminToken(_client);
 
-        // Seed an independent conflicting customer record via helper
-        var conflictId = "CRM_CONFLICT_99";
-        await CustomerSeedHelper.SeedCustomer(_client, conflictId);
 
         var request = new CustomerDto
         {
-            CRMCustomerID = TestData.ExistingCustomerID2,
+            // trying to rename CRM100 to CRM101
+            CRMCustomerID = "CRM101",
+
             FirstName = "Duplicate",
-            LastName = "EmailCheck",
-            Email = $"test_{conflictId}@mail.com", // Matches the seeded target's unique email context
-            Phone = "6049998888"
+            LastName = "Customer",
+            Email = "duplicate@test.com",
+            Phone = "6041234567"
         };
 
-        var response = await _client.PutAsJsonAsync($"/api/Customer/{TestData.ExistingCustomerID2}", request);
 
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        // Act
+
+        var response =
+            await _client.PutAsJsonAsync(
+                "/api/Customer/CRM100",
+                request);
+
+
+        // Assert
+
+        Assert.Equal(
+            HttpStatusCode.Conflict,
+            response.StatusCode);
     }
 
     // =====================================================

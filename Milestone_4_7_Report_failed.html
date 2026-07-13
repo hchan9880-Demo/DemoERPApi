@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Milestone 4.7 Test Run Summary</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; background-color: #f8f9fa; color: #333; }
+        h1 { border-bottom: 2px solid #dee2e6; padding-bottom: 10px; color: #212529; }
+        h2 { margin-top: 30px; color: #495057; }
+        .summary-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: inline-block; min-width: 300px; margin-bottom: 20px; }
+        .summary-item { margin: 10px 0; font-size: 1.1em; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; }
+        .badge-total { background-color: #e9ecef; color: #495057; }
+        .badge-passed { background-color: #d4edda; color: #155724; }
+        .badge-failed { background-color: #f8d7da; color: #721c24; }
+        .failure-card { background: #fff; border-left: 5px solid #dc3545; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .failure-title { font-weight: bold; color: #c92a2a; font-size: 1.1em; margin-bottom: 5px; }
+        .error-msg { background: #fdf2f2; color: #b02a37; border: 1px solid #f5c2c7; padding: 10px; border-radius: 4px; font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.9em; white-space: pre-wrap; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Milestone 4.7 Test Run Summary</h1>
+    
+    <div class="summary-card">
+        <div class="summary-item"><strong>Total Tests:</strong> <span class="badge badge-total">136</span></div>
+        <div class="summary-item"><strong>Passed:</strong> <span class="badge badge-passed">116</span></div>
+        <div class="summary-item"><strong>Failed:</strong> <span class="badge badge-failed">20</span></div>
+        <div class="summary-item"><strong>Overall Outcome:</strong> <strong>Failed</strong></div>
+    </div>
+
+    <h2>Failed Test Details (20)</h2>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_038_SyncCustomer_NullRoleClaim_ReturnsForbidden</div>
+        <div class="error-msg">System.ArgumentNullException : Value cannot be null. (Parameter &apos;value&apos;)</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Validation.CustomerValidationTests.VALID_012_CreateInvalidPhone_ReturnsBadRequest</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: BadRequest
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Security.SecurityTests.SEC_014_GetCustomer_CustomerRetrievesOwnCustomerRecord_ReturnsOk</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: OK
+Actual:   Forbidden</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Validation.CustomerValidationTests.VALID_010_CreateMissingRequiredFields_ReturnsBadRequest</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: BadRequest
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_058_UpdateCustomer_UnsupportedRoleValue_ReturnsForbidden</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: Forbidden
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_059_DeleteCustomer_NullOrMissingRoleClaim_ReturnsForbidden</div>
+        <div class="error-msg">System.ArgumentNullException : Value cannot be null. (Parameter &apos;value&apos;)</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_055_UpdateCustomer_NullOrMissingRoleClaim_ReturnsForbidden</div>
+        <div class="error-msg">System.ArgumentNullException : Value cannot be null. (Parameter &apos;value&apos;)</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Security.SecurityTests.SEC_015_UpdateCustomer_CustomerUpdatesOwnProfile_ReturnsOk</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: OK
+Actual:   Forbidden</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_051_GetCustomer_NullOrMissingRoleClaim_ReturnsForbidden</div>
+        <div class="error-msg">System.ArgumentNullException : Value cannot be null. (Parameter &apos;value&apos;)</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Validation.CustomerValidationTests.VALID_011_CreateInvalidEmail_ReturnsBadRequest</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: BadRequest
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Customer.CustomerDeleteTests.DELETE_006_QADeletesNonExistentAssignedCustomer_ReturnsNotFound</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: NotFound
+Actual:   Forbidden</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Customer.CustomerUpdateTests.UPDATE_001_UpdatePayloadDuplicatesAnotherCustomer_ReturnsConflict</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: Conflict
+Actual:   OK</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Validation.CustomerValidationTests.VALID_009_CreateMalformedJsonPayload_ReturnsBadRequest</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: BadRequest
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Customer.CustomerSyncTests.SYNC_003_QACreatesAssignedCustomer_IfPermitted_ReturnsOk</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: OK
+Actual:   Forbidden</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Customer.CustomerSyncTests.SYNC_002_AdminCreatesDuplicateCustomer_ReturnsConflict</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: Conflict
+Actual:   OK</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_057_UpdateCustomer_AnonymousRoleValue_ReturnsForbidden</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: Forbidden
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Customer.CustomerSyncTests.SyncCustomer_ReturnsOk_WhenAuthorizedUserCreatesValidCustomer</div>
+        <div class="error-msg">Microsoft.Data.SqlClient.SqlException : The DELETE statement conflicted with the REFERENCE constraint &quot;FK_Users_Customers_CustomerID&quot;. The conflict occurred in database &quot;DemoERP&quot;, table &quot;dbo.Users&quot;, column &apos;CustomerID&apos;.
+The statement has been terminated.</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_054_GetCustomer_UnsupportedRoleValue_ReturnsForbidden</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: Forbidden
+Actual:   NotFound</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_063_SyncCustomer_MissingRoleClaim_ReturnsForbidden</div>
+        <div class="error-msg">System.ArgumentNullException : Value cannot be null. (Parameter &apos;value&apos;)</div>
+    </div>    <div class="failure-card">
+        <div class="failure-title">[FAIL] DemoERPApi.Tests.Integration.Authorization.UnsupportedRoleTests.AUTH_053_GetCustomer_AnonymousRoleValue_ReturnsForbidden</div>
+        <div class="error-msg">Assert.Equal() Failure: Values differ
+Expected: Forbidden
+Actual:   NotFound</div>
+    </div></body>
+</html>

@@ -1,6 +1,5 @@
 ﻿using DemoERPApi.Models;
 using DemoERPApi.Tests.Helpers;
-using DemoERPApi.Tests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http;
@@ -189,7 +188,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
         var malformedJson = "{ \"FirstName\": \"Test\", \"LastName\": ";
         var content = new StringContent(malformedJson, Encoding.UTF8, "application/json");
 
-        var response = await _client.PostAsync("/api/Customer", content);
+        var response = await _client.PostAsync("/api/Customer/sync", content);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -207,7 +206,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
             Phone = "6041234567"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Customer", request);
+        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -225,7 +224,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
             Phone = "6041234567"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Customer", request);
+        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -243,7 +242,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
             Phone = "000"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Customer", request);
+        var response = await _client.PostAsJsonAsync("/api/Customer/sync", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

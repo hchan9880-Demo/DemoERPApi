@@ -12,8 +12,7 @@ public static class JwtTestTokenHelper
         string role = "Admin")
     {
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes("ThisIsATestJwtKeyForIntegrationTests123!")
-        );
+            Encoding.UTF8.GetBytes("DemoERPSecretKey123456789"));
 
         var creds = new SigningCredentials(
             key,
