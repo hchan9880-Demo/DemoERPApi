@@ -1,4 +1,5 @@
 using DemoERPApi.Data;
+using DemoERPApi.Middleware;
 using DemoERPApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("DemoERPConnection")));
 
 
+
 // ======================================
 // CONTROLLERS + VALIDATION
 // ======================================
@@ -29,12 +31,12 @@ builder.Services.AddControllers()
             return new BadRequestObjectResult(context.ModelState);
         };
     });
-
+builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ILoggingService, LoggingService>();
 
 // ======================================
 // CORS
@@ -279,16 +281,59 @@ using (var scope = app.Services.CreateScope())
 
 // ======================================
 // HTTP PIPELINE
+/*
+ExceptionMiddleware
+        |
+LoggingMiddleware
+        |
+Authentication
+        |
+Authorization
+        |
+Controller
+
+
+Client Request
+
+       |
+       v
+
+ExceptionMiddleware
+(catch unexpected errors)
+
+       |
+       v
+
+LoggingMiddleware
+(request + response timing)
+
+       |
+       v
+
+Controller
+
+       |
+       v
+
+ILogger<CustomerController>
+
+       |
+       v
+
+SQL Server
+ */
 // ======================================
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<RequestIdMiddleware>();
+app.UseMiddleware<LoggingMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseCors("AllowAll");
+
 
 
 app.UseAuthentication();
-
 
 app.UseAuthorization();
 

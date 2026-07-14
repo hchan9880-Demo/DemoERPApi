@@ -1,5 +1,6 @@
 ﻿using DemoERPApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DemoERPApi.Data;
 
@@ -10,30 +11,69 @@ public class AppDbContext : DbContext
     {
     }
 
+
     public DbSet<Customer> Customers { get; set; }
 
     public DbSet<User> Users { get; set; }
 
     public DbSet<CustomerAccess> CustomerAccess { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public DbSet<SyncLogs> SyncLogs { get; set; }
+
+
+
+    protected override void OnConfiguring(
+        DbContextOptionsBuilder optionsBuilder)
     {
+        base.OnConfiguring(optionsBuilder);
+
+
+        // =====================================================
+        // Ignore EF Core pending model changes warning
+        //
+        // Reason:
+        // Existing DemoERP database already exists.
+        // Integration tests call Database.Migrate()
+        // during startup.
+        //
+        // Without this, WebApplicationFactory fails before
+        // executing API tests.
+        // =====================================================
+
+        optionsBuilder.ConfigureWarnings(
+            warnings =>
+            warnings.Ignore(
+                RelationalEventId.PendingModelChangesWarning));
+    }
+
+
+
+    protected override void OnModelCreating(
+        ModelBuilder modelBuilder)
+    {
+
+
         base.OnModelCreating(modelBuilder);
 
-        // ======================================
-        // Customers
-        // ======================================
+
+
+        // =====================================================
+        // Customer
+        // =====================================================
 
         modelBuilder.Entity<Customer>()
             .HasKey(c => c.CRMCustomerID);
 
-        // ======================================
-        // Users
-        // ======================================
+
+
+        // =====================================================
+        // User
+        // =====================================================
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
             .IsUnique();
+
 
         modelBuilder.Entity<User>()
             .HasOne<Customer>()
@@ -42,13 +82,86 @@ public class AppDbContext : DbContext
             .HasPrincipalKey(c => c.CRMCustomerID)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // ======================================
+
+
+        // =====================================================
         // CustomerAccess
-        // ======================================
+        // =====================================================
 
         modelBuilder.Entity<CustomerAccess>()
             .HasKey(ca => ca.Id);
+
+
+
+        // =====================================================
+        // SyncLog
+        // =====================================================
+        modelBuilder.Entity<SyncLogs>()
+.ToTable("SyncLogs");
+        modelBuilder.Entity<SyncLogs>()
+            .HasKey(x => x.LogId);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.LogId)
+            .ValueGeneratedOnAdd();
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.CRMCustomerID)
+            .HasColumnName("CRMCustomerID")
+            .HasMaxLength(100);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.Operation)
+            .HasColumnName("Operation")
+            .HasMaxLength(40);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.Status)
+            .HasColumnName("Status")
+            .HasMaxLength(40);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.Message)
+            .HasColumnName("Message")
+            .HasMaxLength(1000);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.Username)
+            .HasColumnName("Username")
+            .HasMaxLength(200);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.RequestId)
+            .HasColumnName("RequestId")
+            .HasMaxLength(200);
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.CreatedDate)
+            .HasColumnName("CreatedDate")
+            .HasColumnType("datetime2");
+
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.ExecutionTimeMs)
+            .HasColumnName("ExecutionTimeMs");
+
+
+        // =====================================================
+        // Optional:
+        // Match database column names
+        // =====================================================
+
+        modelBuilder.Entity<SyncLogs>()
+            .Property(x => x.CreatedDate)
+            .HasColumnType("datetime2");
+
     }
 }
-
-

@@ -357,7 +357,7 @@ public static class CustomerSeedHelper
     ITestOutputHelper? output)
     {
         var connectionString =
-            "Server=(localdb)\\MSSQLLocalDB;Database=DemoERP_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+            "Server=(localdb)\\MSSQLLocalDB;Database=DemoERP;Trusted_Connection=True;TrustServerCertificate=True;";
 
         await using var conn =
             new SqlConnection(connectionString);

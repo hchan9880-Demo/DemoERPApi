@@ -1,7 +1,10 @@
-﻿using DemoERPApi.Models;
+﻿using DemoERPApi.Data;
+using DemoERPApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,11 +18,20 @@ namespace DemoERPApi.Controllers;
 [Route("api/[controller]")]
 public class CustomerController : ControllerBase
 {
+
+
+    private readonly AppDbContext _context;
+    private readonly ILogger<CustomerController> _logger;
     private readonly string _connectionString;
 
-
-    public CustomerController(IConfiguration configuration)
+    public CustomerController(
+       AppDbContext context,
+       ILogger<CustomerController> logger,
+       IConfiguration configuration)
     {
+        _context = context;
+        _logger = logger;
+
         _connectionString =
             configuration.GetConnectionString("DemoERPConnection")
             ?? throw new InvalidOperationException(
@@ -330,6 +342,10 @@ AND LOWER(Username)=LOWER(@username)
         if (Convert.ToInt32(
                 existsCmd.ExecuteScalar()) == 0)
         {
+            _logger.LogWarning(
+                "Customer not found {CRMCustomerID}",
+                customerId);
+
             return NotFound();
         }
 
@@ -343,6 +359,11 @@ AND LOWER(Username)=LOWER(@username)
 
             if (!CanAccessCustomer(customerId))
             {
+                _logger.LogWarning(
+                    "Unauthorized customer access attempt {CRMCustomerID} by {Username}",
+                    customerId,
+                    currentUser);
+
                 return Forbid();
             }
         }
@@ -379,7 +400,10 @@ AND LOWER(Username)=LOWER(@username)
         if (!reader.Read())
             return NotFound();
 
-
+        _logger.LogInformation(
+            "Customer retrieved {CRMCustomerID} by {Username}",
+            customerId,
+            currentUser);
 
         return Ok(new CustomerDto
         {
@@ -420,8 +444,17 @@ AND LOWER(Username)=LOWER(@username)
 
 
         if (string.IsNullOrWhiteSpace(customer.CRMCustomerID))
-            return BadRequest("CustomerID required");
+        {
+            WriteSyncLog(
+                "UNKNOWN",
+                "CREATE",
+                "FAILED",
+                "CustomerID required",
+                "Unknown");
 
+            return BadRequest(
+                "CustomerID required");
+        }
 
         if (!IsValidEmail(customer.Email))
             return BadRequest("Invalid email");
@@ -464,7 +497,7 @@ AND LOWER(Username)=LOWER(@username)
             return Forbid();
 
 
-     //   var role = GetRole();
+        //   var role = GetRole();
 
         bool isAdmin =
             string.Equals(
@@ -533,7 +566,21 @@ AND LOWER(Username)=LOWER(@username)
             // ================================================
             if (!isDeleted)
             {
-                return Conflict("Customer already exists.");
+                _logger.LogWarning(
+                    "Duplicate customer detected {CRMCustomerID}",
+                    customer.CRMCustomerID);
+
+
+                WriteSyncLog(
+                    customer.CRMCustomerID,
+                    "CREATE",
+                    "WARNING",
+                    "Duplicate customer submitted",
+                    currentUser);
+
+
+                return Conflict(
+                    "Customer already exists.");
             }
 
             // ================================================
@@ -560,6 +607,24 @@ AND LOWER(Username)=LOWER(@username)
             restore.Parameters.AddWithValue("@phone", customer.Phone);
 
             restore.ExecuteNonQuery();
+
+
+            _logger.LogInformation(
+                "Customer restored {CRMCustomerID} by {Username}",
+                customer.CRMCustomerID,
+                currentUser);
+
+            // ==========================================
+            // Write successful sync log
+            // ==========================================
+
+            WriteSyncLog(
+                customer.CRMCustomerID,
+                "RESTORE",
+                "SUCCESS",
+                "Customer restored successfully",
+                currentUser);
+
 
             return Ok("Customer restored successfully.");
         }
@@ -602,7 +667,18 @@ AND LOWER(Username)=LOWER(@username)
         insert.ExecuteNonQuery();
 
 
+        _logger.LogInformation(
+            "Customer created {CRMCustomerID} by {Username}",
+            customer.CRMCustomerID,
+            currentUser);
 
+
+        WriteSyncLog(
+    customer.CRMCustomerID,
+    "CREATE",
+    "SUCCESS",
+    "Customer created successfully",
+    currentUser);
 
 
 
@@ -848,8 +924,19 @@ AND LOWER(Username)=LOWER(@username)
 
 
         if (rows == 0)
-            return NotFound();
+        {
+            _logger.LogWarning(
+                "Customer update failed - not found {CRMCustomerID}",
+                customerId);
 
+            return NotFound();
+        }
+
+
+        _logger.LogInformation(
+            "Customer updated {CRMCustomerID} by {Username}",
+            customerId,
+            currentUser);
 
 
         return Ok(new
@@ -979,11 +1066,11 @@ AND LOWER(Username)=LOWER(@username)
 
 
 
-     isAdmin =
-            string.Equals(
-                role,
-                "Admin",
-                StringComparison.OrdinalIgnoreCase);
+        isAdmin =
+               string.Equals(
+                   role,
+                   "Admin",
+                   StringComparison.OrdinalIgnoreCase);
 
         if (!isAdmin)
         {
@@ -1040,8 +1127,20 @@ AND LOWER(Username)=LOWER(@username)
 
 
         if (rows == 0)
-            return NotFound();
+        {
+            _logger.LogWarning(
+                "Customer delete failed - not found {CRMCustomerID}",
+                customerId);
 
+            return NotFound();
+        }
+
+
+
+        _logger.LogInformation(
+         "Customer deleted {CRMCustomerID} by {Username}",
+         customerId,
+         currentUser);
 
 
         return Ok(
@@ -1260,6 +1359,56 @@ AND LOWER(Username)=LOWER(@username)
             .WriteToken(token);
     }
 
+    // =====================================================
+    // WRITE SYNC LOG
+    // =====================================================
+
+    private void WriteSyncLog(
+    string crmCustomerID,
+    string operation,
+    string status,
+    string message,
+    string username)
+    {
+        try
+        {
+            Console.WriteLine("Writing SyncLog...");
+
+            var log = new SyncLogs
+            {
+                CRMCustomerID = crmCustomerID,
+                Operation = operation,
+                Status = status,
+                Message = message,
+                Username = username,
+                RequestId = HttpContext.TraceIdentifier,
+                   CreatedDate = DateTime.Now,
+             //   CreatedDate = DateTime.UtcNow,
+                ExecutionTimeMs = 0
+            };
+
+
+            _context.SyncLogs.Add(log);
+            Console.WriteLine("==========================");
+            Console.WriteLine(
+                $"Connection = {_connectionString}");
+            Console.WriteLine("==========================");
+            var rows = _context.SaveChanges();
+
+
+            Console.WriteLine(
+                $"SyncLog saved rows={rows}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("==============================");
+            Console.WriteLine("SYNCLOG ERROR");
+            Console.WriteLine(ex.ToString());
+            Console.WriteLine("==============================");
+
+            throw;
+        }
+    }
 
 
 }
