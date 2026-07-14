@@ -82,14 +82,25 @@ The application demonstrates enterprise backend development practices including 
 
 ---
 
+| Version | Milestone | Description |
+|---|---|---|
+| v1.0 | Customer API Foundation | CRUD API implementation |
+| v2.0 | Validation & Testing | Integration testing framework |
+| v3.0 | Security | JWT authentication |
+| v4.0 | Enterprise Testing | 136 automated tests |
+| v5.0 | Observability | Logging and monitoring + 6 logging test cases|
+| v6.0 | Production Ready | Stability improvements |
+
+---
+
 ## Future Enhancements
 
 * Refresh Tokens
-* Password Hashing (BCrypt)
-* User Management
+* Password Hashing (BCrypt) - Done
+* User Management - Done
 * Audit Logging
-* Repository Pattern
-* Service Layer
+* Repository Pattern - Done
+* Service Layer - Done
 * Docker Deployment
 * CI/CD Pipeline
 
