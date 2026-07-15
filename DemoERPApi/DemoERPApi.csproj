@@ -7,6 +7,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Database\Scripts\**" />
+	  <Compile Remove="Database\SQL_Testing\**" />
+	  <Content Remove="Database\Scripts\**" />
+	  <Content Remove="Database\SQL_Testing\**" />
+	  <EmbeddedResource Remove="Database\Scripts\**" />
+	  <EmbeddedResource Remove="Database\SQL_Testing\**" />
+	  <None Remove="Database\Scripts\**" />
+	  <None Remove="Database\SQL_Testing\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Content Remove="appsettings.Test.json" />
 	</ItemGroup>
 
@@ -27,6 +38,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Database\Testing\" />
 		<Folder Include="docs\Test Result\" />
 		<Folder Include="sql\seed\" />
 		<Folder Include="sql\stored_procedures\" />

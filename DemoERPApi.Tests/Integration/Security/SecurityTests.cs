@@ -26,6 +26,7 @@ SEC-006    /api/Customer/{id}    DELETE Invalid JWT token                       
 SEC-007    /api/Customer/sync    POST   Missing Authorization header            401 Unauthorized
 SEC-008    /api/Customer/sync    POST   Invalid JWT token                        401 Unauthorized
 SEC-009    All Protected Endpoints Any   Expired JWT                            401 Unauthorized
+SEC-009    All Protected Endpoints Any   Expired JWT                            401 Unauthorized
 SEC-010    All Protected Endpoints Any   Tampered JWT signature                 401 Unauthorized
 SEC-011    All Protected Endpoints Any   Unsupported role claim                 403 Forbidden
 SEC-012    Customer APIs           POST/PUT SQL Injection / XSS payload         400 Bad Request / Validation

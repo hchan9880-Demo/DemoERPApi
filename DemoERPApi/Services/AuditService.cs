@@ -1,0 +1,227 @@
+﻿/*
+===============================================================================
+
+     Implements audit logging business logic.
+
+ Responsibilities:
+
+     1. Serialize old entity values
+     2. Serialize new entity values
+     3. Create AuditLog record
+     4. Save audit information into database
+
+ Audit records provide:
+     - Data traceability
+     - Compliance support
+     - Change investigation
+     - User accountability
+
+CustomerController
+
+       |
+       |
+       v
+
+IAuditService
+
+       |
+       |
+       v
+
+AuditService
+
+       |
+       |
+       v
+
+AuditLogs Table
+===============================================================================
+*/
+
+
+using System.Text.Json;
+using DemoERPApi.Data;
+using DemoERPApi.Models;
+using Microsoft.EntityFrameworkCore;
+
+
+namespace DemoERPApi.Services
+{
+    public class AuditService : IAuditService
+    {
+        private readonly AppDbContext _context;
+
+
+        public AuditService(AppDbContext context)
+        {
+            _context = context;
+        }
+
+
+
+        /*
+        ===========================================================================
+        Log Create Operation
+
+        Example:
+            Customer created
+
+        OldValues:
+            null
+
+        NewValues:
+            Customer object JSON
+        ===========================================================================
+        */
+        public async Task LogCreateAsync<T>(
+            string entityName,
+            string entityId,
+            T newEntity,
+            string changedBy,
+            string? requestId)
+        {
+            await LogAsync(
+                entityName,
+                entityId,
+                "CREATE",
+                null,
+                newEntity,
+                changedBy,
+                requestId);
+        }
+
+
+
+
+        /*
+        ===========================================================================
+        Log Update Operation
+
+        Example:
+            Customer phone number changed
+
+        OldValues:
+            Previous customer data
+
+        NewValues:
+            Updated customer data
+        ===========================================================================
+        */
+        public async Task LogUpdateAsync<T>(
+            string entityName,
+            string entityId,
+            T oldEntity,
+            T newEntity,
+            string changedBy,
+            string? requestId)
+        {
+            await LogAsync(
+                entityName,
+                entityId,
+                "UPDATE",
+                oldEntity,
+                newEntity,
+                changedBy,
+                requestId);
+        }
+
+
+
+
+        /*
+        ===========================================================================
+        Log Delete Operation
+
+        Example:
+            Customer deleted
+
+        OldValues:
+            Deleted customer snapshot
+
+        NewValues:
+            null
+        ===========================================================================
+        */
+        public async Task LogDeleteAsync<T>(
+            string entityName,
+            string entityId,
+            T deletedEntity,
+            string changedBy,
+            string? requestId)
+        {
+            await LogAsync(
+                entityName,
+                entityId,
+                "DELETE",
+                deletedEntity,
+                null,
+                changedBy,
+                requestId);
+        }
+
+
+
+
+
+        /*
+        ===========================================================================
+        Generic Audit Logger
+
+        Processing Flow:
+
+            Entity Object
+                  |
+                  v
+            JSON Serialization
+                  |
+                  v
+            Create AuditLog
+                  |
+                  v
+            Save Database
+
+        ===========================================================================
+        */
+        public async Task LogAsync(
+            string entityName,
+            string entityId,
+            string action,
+            object? oldValues,
+            object? newValues,
+            string changedBy,
+            string? requestId)
+        {
+
+            var auditLog = new AuditLog
+            {
+                EntityName = entityName,
+
+                EntityId = entityId,
+
+                Action = action,
+
+
+                OldValues = oldValues == null
+                    ? null
+                    : JsonSerializer.Serialize(oldValues),
+
+
+                NewValues = newValues == null
+                    ? null
+                    : JsonSerializer.Serialize(newValues),
+
+
+                ChangedBy = changedBy,
+
+                RequestId = requestId,
+
+                ChangedDate = DateTime.UtcNow
+            };
+
+
+            await _context.AuditLogs.AddAsync(auditLog);
+
+            await _context.SaveChangesAsync();
+        }
+    }
+}

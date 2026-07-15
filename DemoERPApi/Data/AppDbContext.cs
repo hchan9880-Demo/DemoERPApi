@@ -1,6 +1,7 @@
 ﻿using DemoERPApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Win32;
 
 namespace DemoERPApi.Data;
 
@@ -20,7 +21,8 @@ public class AppDbContext : DbContext
 
     public DbSet<SyncLogs> SyncLogs { get; set; }
 
-
+    // Register AuditLogs DbSet
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnConfiguring(
         DbContextOptionsBuilder optionsBuilder)

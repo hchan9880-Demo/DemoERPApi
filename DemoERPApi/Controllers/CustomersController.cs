@@ -1,5 +1,6 @@
 ﻿using DemoERPApi.Data;
 using DemoERPApi.Models;
+using DemoERPApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -18,19 +19,20 @@ namespace DemoERPApi.Controllers;
 [Route("api/[controller]")]
 public class CustomerController : ControllerBase
 {
-
-
     private readonly AppDbContext _context;
     private readonly ILogger<CustomerController> _logger;
+    private readonly IAuditService _auditService;
     private readonly string _connectionString;
 
     public CustomerController(
-       AppDbContext context,
-       ILogger<CustomerController> logger,
-       IConfiguration configuration)
+     AppDbContext context,
+     ILogger<CustomerController> logger,
+     IConfiguration configuration,
+     IAuditService auditService)
     {
         _context = context;
         _logger = logger;
+        _auditService = auditService;
 
         _connectionString =
             configuration.GetConnectionString("DemoERPConnection")
@@ -89,7 +91,7 @@ public class CustomerController : ControllerBase
     // CURRENT USER FROM JWT
     // =====================================================
 
-    private string? GetCurrentUser()
+    private string GetCurrentUser()
     {
         return User.Claims
             .FirstOrDefault(c =>
@@ -98,7 +100,8 @@ public class CustomerController : ControllerBase
                 c.Type == ClaimTypes.Name
                 ||
                 c.Type == JwtRegisteredClaimNames.Sub)
-            ?.Value;
+            ?.Value
+            ?? "Unknown";
     }
 
 
@@ -436,7 +439,7 @@ AND LOWER(Username)=LOWER(@username)
     // =====================================================
 
     [HttpPost("sync")]
-    public IActionResult SyncCustomer(
+    public async Task<IActionResult> SyncCustomer(
         [FromBody] CustomerDto customer)
     {
         if (customer == null)
@@ -664,7 +667,28 @@ AND LOWER(Username)=LOWER(@username)
         insert.Parameters.AddWithValue("@email", customer.Email);
         insert.Parameters.AddWithValue("@phone", customer.Phone);
 
+
+
+
+
+
+
+
+
         insert.ExecuteNonQuery();
+
+
+        // =====================================================
+        // AUDIT LOG - CREATE CUSTOMER
+        // =====================================================
+
+        await _auditService.LogCreateAsync(
+            "Customer",
+            customer.CRMCustomerID,
+            customer,
+            GetCurrentUser() ?? "Unknown",
+            HttpContext.TraceIdentifier);
+
 
 
         _logger.LogInformation(
@@ -673,12 +697,19 @@ AND LOWER(Username)=LOWER(@username)
             currentUser);
 
 
+
         WriteSyncLog(
-    customer.CRMCustomerID,
-    "CREATE",
-    "SUCCESS",
-    "Customer created successfully",
-    currentUser);
+            customer.CRMCustomerID,
+            "CREATE",
+            "SUCCESS",
+            "Customer created successfully",
+            currentUser);
+
+
+
+
+
+
 
 
 
@@ -738,9 +769,9 @@ AND LOWER(Username)=LOWER(@username)
     // =====================================================
 
     [HttpPut("{customerId}")]
-    public IActionResult UpdateCustomer(
-        string customerId,
-        [FromBody] CustomerDto customer)
+    public async Task<IActionResult> UpdateCustomer(
+    string customerId,
+    [FromBody] CustomerDto customer)
     {
         if (string.IsNullOrWhiteSpace(customerId))
             return BadRequest(
@@ -872,7 +903,62 @@ AND LOWER(Username)=LOWER(@username)
 
 
 
+        // =====================================================
+        // LOAD ORIGINAL CUSTOMER FOR AUDIT
+        // =====================================================
 
+        CustomerDto oldCustomer;
+
+
+        using (var oldCmd = new SqlCommand(@"
+SELECT
+    CRMCustomerID,
+    FirstName,
+    LastName,
+    Email,
+    Phone
+FROM Customers
+WHERE CRMCustomerID=@id
+",
+        conn))
+        {
+            oldCmd.Parameters.AddWithValue(
+                "@id",
+                customerId);
+
+
+            using var oldReader =
+                oldCmd.ExecuteReader();
+
+
+            if (!oldReader.Read())
+                return NotFound();
+
+
+            oldCustomer = new CustomerDto
+            {
+                CRMCustomerID =
+                    oldReader["CRMCustomerID"].ToString()!,
+
+
+                FirstName =
+                    oldReader["FirstName"].ToString()!,
+
+
+                LastName =
+                    oldReader["LastName"] == DBNull.Value
+                        ? null
+                        : oldReader["LastName"].ToString(),
+
+
+                Email =
+                    oldReader["Email"].ToString()!,
+
+
+                Phone =
+                    oldReader["Phone"].ToString()!
+            };
+        }
 
         using var update =
             new SqlCommand(@"
@@ -921,7 +1007,17 @@ AND LOWER(Username)=LOWER(@username)
         var rows =
             update.ExecuteNonQuery();
 
+        // =====================================================
+        // AUDIT LOG - UPDATE CUSTOMER
+        // =====================================================
 
+        await _auditService.LogUpdateAsync(
+            "Customer",
+            customerId,
+            oldCustomer,
+            customer,
+            currentUser,
+            HttpContext.TraceIdentifier);
 
         if (rows == 0)
         {
@@ -971,7 +1067,8 @@ AND LOWER(Username)=LOWER(@username)
     // =====================================================
 
     [HttpDelete("{customerId}")]
-    public IActionResult DeleteCustomer(string customerId)
+    public async Task<IActionResult> DeleteCustomer(
+        string customerId)
     {
         if (string.IsNullOrWhiteSpace(customerId))
             return BadRequest(
@@ -1097,7 +1194,59 @@ AND LOWER(Username)=LOWER(@username)
         }
 
 
+        // =====================================================
+        // LOAD CUSTOMER BEFORE DELETE FOR AUDIT
+        // =====================================================
 
+        CustomerDto deletedCustomer;
+
+
+        using (var cmd = new SqlCommand(@"
+SELECT
+    CRMCustomerID,
+    FirstName,
+    LastName,
+    Email,
+    Phone
+FROM Customers
+WHERE CRMCustomerID=@id
+",
+        conn))
+        {
+            cmd.Parameters.AddWithValue(
+                "@id",
+                customerId);
+
+
+            using var reader =
+                cmd.ExecuteReader();
+
+
+            reader.Read();
+
+
+            deletedCustomer = new CustomerDto
+            {
+                CRMCustomerID =
+                    reader["CRMCustomerID"].ToString()!,
+
+
+                FirstName =
+                    reader["FirstName"].ToString()!,
+
+
+                LastName =
+                    reader["LastName"].ToString(),
+
+
+                Email =
+                    reader["Email"].ToString()!,
+
+
+                Phone =
+                    reader["Phone"].ToString()!
+            };
+        }
 
         // =====================================================
         // SOFT DELETE
@@ -1124,7 +1273,16 @@ AND LOWER(Username)=LOWER(@username)
         var rows =
             delete.ExecuteNonQuery();
 
+        // =====================================================
+        // AUDIT LOG - DELETE CUSTOMER
+        // =====================================================
 
+        await _auditService.LogDeleteAsync(
+            "Customer",
+            customerId,
+            deletedCustomer,
+            currentUser,
+            HttpContext.TraceIdentifier);
 
         if (rows == 0)
         {

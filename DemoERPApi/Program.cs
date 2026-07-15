@@ -19,7 +19,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("DemoERPConnection")));
 
 
-
 // ======================================
 // CONTROLLERS + VALIDATION
 // ======================================
@@ -37,6 +36,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<ILoggingService, LoggingService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 // ======================================
 // CORS
