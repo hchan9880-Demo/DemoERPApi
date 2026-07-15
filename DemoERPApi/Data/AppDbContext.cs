@@ -165,5 +165,39 @@ public class AppDbContext : DbContext
             .Property(x => x.CreatedDate)
             .HasColumnType("datetime2");
 
+
+
+
+
+        // =====================================================
+        // AuditLogs
+        // =====================================================
+
+
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.AuditId);
+
+            entity.ToTable("AuditLogs");
+
+            entity.Property(e => e.EntityName)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Action)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ChangedBy)
+                .HasMaxLength(100);
+        });
+
+
+
+
+
+
+
+
+
     }
 }

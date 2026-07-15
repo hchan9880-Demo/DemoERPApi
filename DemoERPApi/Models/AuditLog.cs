@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DemoERPApi.Models
 {
@@ -25,10 +26,11 @@ namespace DemoERPApi.Models
          SyncLogs:
              Tracks APPLICATION execution events.
 
-
     ===============================================================================
     */
 
+
+    [Table("AuditLogs")]
     public class AuditLog
     {
 
@@ -51,6 +53,7 @@ namespace DemoERPApi.Models
             Order
             Invoice
         */
+        [MaxLength(100)]
         public string EntityName { get; set; } = string.Empty;
 
 
@@ -61,6 +64,7 @@ namespace DemoERPApi.Models
         Example:
             CRMCustomerID = CRM100
         */
+        [MaxLength(400)]
         public string EntityId { get; set; } = string.Empty;
 
 
@@ -74,60 +78,47 @@ namespace DemoERPApi.Models
             DELETE
             RESTORE
         */
+        [MaxLength(50)]
         public string Action { get; set; } = string.Empty;
 
 
 
         /*
-        JSON snapshot of data before modification.
-
-        Example:
-        {
-            "Phone": "604-111-1111",
-            "Email": "old@email.com"
-        }
-
-        Used for:
-            - Change comparison
-            - Data recovery investigation
+        JSON snapshot before modification.
         */
         public string? OldValues { get; set; }
 
 
 
         /*
-        JSON snapshot of data after modification.
-
-        Example:
-        {
-            "Phone": "604-222-2222",
-            "Email": "new@email.com"
-        }
+        JSON snapshot after modification.
         */
         public string? NewValues { get; set; }
 
 
 
         /*
-        User or service account responsible for the change.
+        User responsible for the change.
 
         Examples:
             admin
             henry@demoerp.com
             system
         */
+        [MaxLength(100)]
         public string ChangedBy { get; set; } = string.Empty;
 
 
 
         /*
-        Unique API request identifier.
+        API request correlation identifier.
 
         Used for:
             - Request tracing
             - Troubleshooting
             - Correlating API logs
         */
+        [MaxLength(800)]
         public string? RequestId { get; set; }
 
 

@@ -59,16 +59,16 @@ builder.Services.AddCors(options =>
 // ======================================
 
 var jwtKey =
-    builder.Configuration["Jwt:Key"]
+    builder.Configuration["JwtSettings:Key"]
     ?? "DemoERP_Test_JWT_Key_12345678901234567890";
 
 var jwtIssuer =
-    builder.Configuration["Jwt:Issuer"]
+    builder.Configuration["JwtSettings:Issuer"]
     ?? "DemoERPApi";
 
 
 var jwtAudience =
-    builder.Configuration["Jwt:Audience"]
+    builder.Configuration["JwtSettings:Audience"]
     ?? "DemoERPApiUsers";
 
 // ======================================
@@ -137,6 +137,18 @@ builder.Services
         {
             OnAuthenticationFailed = context =>
             {
+
+                Console.WriteLine(
+                    "==============================");
+
+                Console.WriteLine("TOKEN VALID");
+
+                foreach (var claim in context.Principal.Claims)
+                {
+                    Console.WriteLine($"{claim.Type} = {claim.Value}");
+                }
+
+
                 Console.WriteLine(
                     "==============================");
 

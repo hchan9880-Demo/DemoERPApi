@@ -12,6 +12,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+
 namespace DemoERPApi.Controllers;
 
 [Authorize]
@@ -34,10 +37,17 @@ public class CustomerController : ControllerBase
         _logger = logger;
         _auditService = auditService;
 
-        _connectionString =
+      /*
+       _connectionString =
             configuration.GetConnectionString("DemoERPConnection")
             ?? throw new InvalidOperationException(
                 "Missing connection string");
+      */
+        _connectionString =
+    configuration.GetConnectionString(
+        "DemoERPConnection");
+
+
     }
 
 
@@ -1556,6 +1566,13 @@ WHERE CRMCustomerID=@id
 
             Console.WriteLine(
                 $"SyncLog saved rows={rows}");
+
+
+
+
+
+
+
         }
         catch (Exception ex)
         {

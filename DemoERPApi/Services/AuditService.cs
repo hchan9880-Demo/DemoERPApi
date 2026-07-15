@@ -39,9 +39,11 @@ AuditLogs Table
 */
 
 
-using System.Text.Json;
+
 using DemoERPApi.Data;
 using DemoERPApi.Models;
+using DemoERPApi.Services;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -60,23 +62,31 @@ namespace DemoERPApi.Services
 
 
         /*
-        ===========================================================================
-        Log Create Operation
+ ===============================================================================
+ Log Create Operation
 
-        Example:
-            Customer created
+ Creates an audit record when a new entity is created.
 
-        OldValues:
-            null
+ Example:
 
-        NewValues:
-            Customer object JSON
-        ===========================================================================
-        */
+ Entity:
+     Customer
+
+ Action:
+     CREATE
+
+ OldValues:
+     null
+
+ NewValues:
+     New entity snapshot JSON
+
+ ===============================================================================
+ */
         public async Task LogCreateAsync<T>(
             string entityName,
             string entityId,
-            T newEntity,
+            T newValues,
             string changedBy,
             string? requestId)
         {
@@ -85,7 +95,7 @@ namespace DemoERPApi.Services
                 entityId,
                 "CREATE",
                 null,
-                newEntity,
+                newValues,
                 changedBy,
                 requestId);
         }
@@ -222,6 +232,8 @@ namespace DemoERPApi.Services
             await _context.AuditLogs.AddAsync(auditLog);
 
             await _context.SaveChangesAsync();
+
+            Console.WriteLine("Audit saved.");
         }
     }
 }
