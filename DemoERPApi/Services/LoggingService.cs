@@ -50,7 +50,7 @@ namespace DemoERPApi.Services
             _db = db;
         }
 
-
+        /*
         public async Task LogAsync(
             string crmCustomerId,
             string operation,
@@ -77,5 +77,43 @@ namespace DemoERPApi.Services
             await _db.SaveChangesAsync();
         }
     }
+*/
 
-}
+    public async Task LogAsync(
+    string crmCustomerId,
+    string operation,
+    string status,
+    string message,
+    string? username,
+    string? requestId,
+    int executionTimeMs)
+        {
+            try
+            {
+                _db.SyncLogs.Add(new SyncLogs
+                {
+                    CRMCustomerID = crmCustomerId,
+                    Operation = operation,
+                    Status = status,
+                    Message = message,
+                    Username = username,
+                    RequestId = requestId,
+                    CreatedDate = DateTime.UtcNow,
+                    ExecutionTimeMs = executionTimeMs
+                });
+
+                await _db.SaveChangesAsync();
+
+                Console.WriteLine("SyncLog saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to save SyncLog:");
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+
+
+        }
+    }

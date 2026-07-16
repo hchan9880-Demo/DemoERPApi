@@ -39,6 +39,8 @@ builder.Services.AddScoped<ILoggingService, LoggingService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
+
+
 // ======================================
 // CORS
 // ======================================
@@ -430,8 +432,8 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<RequestIdMiddleware>();
 app.UseMiddleware<LoggingMiddleware>();
-app.UseMiddleware<ExceptionMiddleware>();
-
+//app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 
 

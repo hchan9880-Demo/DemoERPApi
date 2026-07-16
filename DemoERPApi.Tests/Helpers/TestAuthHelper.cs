@@ -190,7 +190,24 @@ public static class TestAuthHelper
     }
 
 
+    // =====================================================
+    // VALID JWT
+    // =====================================================
+    public static void SetValidToken(
+     HttpClient client)
+    {
+        var token =
+            CreateJwtToken(
+                "testuser",
+                "Admin",
+                "TEST001");
 
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+    }
 
 
     // =====================================================
@@ -237,6 +254,9 @@ public static class TestAuthHelper
                     "Unauthorized",
                     "CRM999"));
     }
+
+
+   
 
 
 

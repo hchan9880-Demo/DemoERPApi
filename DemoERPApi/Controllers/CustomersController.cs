@@ -1,4 +1,5 @@
 ﻿using DemoERPApi.Data;
+using DemoERPApi.Exceptions;
 using DemoERPApi.Models;
 using DemoERPApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System.ComponentModel.DataAnnotations;
+using DemoERPApi.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -359,7 +360,11 @@ AND LOWER(Username)=LOWER(@username)
                 "Customer not found {CRMCustomerID}",
                 customerId);
 
-            return NotFound();
+           // return NotFound();
+
+            throw new NotFoundException(
+    "Customer not found");
+
         }
 
 
@@ -411,7 +416,12 @@ AND LOWER(Username)=LOWER(@username)
 
 
         if (!reader.Read())
-            return NotFound();
+            //  return NotFound();
+            throw new NotFoundException(
+      "Customer not found");
+
+
+
 
         _logger.LogInformation(
             "Customer retrieved {CRMCustomerID} by {Username}",
@@ -790,8 +800,11 @@ AND LOWER(Username)=LOWER(@username)
 
 
         if (customer == null)
-            return BadRequest(
-                "Customer data required");
+        {
+            throw new ValidationException(
+                "Customer",
+                "Customer does not exist");
+        }
 
 
 
@@ -867,7 +880,10 @@ AND LOWER(Username)=LOWER(@username)
         if (Convert.ToInt32(
                 exists.ExecuteScalar()) == 0)
         {
-            return NotFound();
+            //  return NotFound();
+            throw new NotFoundException(
+      "Customer not found");
+
         }
 
 
@@ -942,7 +958,9 @@ WHERE CRMCustomerID=@id
 
 
             if (!oldReader.Read())
-                return NotFound();
+                // return NotFound();
+                throw new NotFoundException(
+     "Customer not found");
 
 
             oldCustomer = new CustomerDto
@@ -1035,7 +1053,10 @@ WHERE CRMCustomerID=@id
                 "Customer update failed - not found {CRMCustomerID}",
                 customerId);
 
-            return NotFound();
+            // return NotFound();
+            throw new NotFoundException(
+     "Customer not found");
+
         }
 
 
@@ -1165,7 +1186,10 @@ WHERE CRMCustomerID=@id
 
         if (found == 0)
         {
-            return NotFound();
+            // return NotFound();
+            throw new NotFoundException(
+    "Customer not found");
+
         }
 
         // =====================================================
@@ -1301,7 +1325,12 @@ WHERE CRMCustomerID=@id
                 "Customer delete failed - not found {CRMCustomerID}",
                 customerId);
 
-            return NotFound();
+            //    return NotFound();
+
+            throw new NotFoundException(
+    "Customer not found");
+
+
         }
 
 
