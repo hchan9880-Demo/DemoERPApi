@@ -6,7 +6,6 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-
 namespace DemoERPApi.Tests.Helpers;
 
 public static class TestAuthHelper
@@ -46,6 +45,7 @@ public static class TestAuthHelper
                 .Result;
 
 
+
         var result =
             JsonSerializer.Deserialize<LoginResultDto>(
                 json,
@@ -54,18 +54,18 @@ public static class TestAuthHelper
                     PropertyNameCaseInsensitive = true
                 });
 
-
-        if (result == null || string.IsNullOrEmpty(result.Token))
+        if (result == null || string.IsNullOrWhiteSpace(result.AccessToken))
         {
             throw new Exception(
                 $"Admin login failed. Response: {json}");
         }
 
-
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue(
                 "Bearer",
-                result.Token);
+                result.AccessToken);
+
+
     }
 
 

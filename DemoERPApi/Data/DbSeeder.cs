@@ -105,10 +105,29 @@ public static class DbSeeder
 
     public static void Reset(AppDbContext context)
     {
+
+
+
+        context.RefreshTokens.RemoveRange(context.RefreshTokens);
+
+        context.AuditLogs.RemoveRange(context.AuditLogs);
+
         context.CustomerAccess.RemoveRange(context.CustomerAccess);
+
+        context.SyncLogs.RemoveRange(context.SyncLogs);
+
         context.Users.RemoveRange(context.Users);
+
         context.Customers.RemoveRange(context.Customers);
+
         context.SaveChanges();
+
+
+
+    //    context.CustomerAccess.RemoveRange(context.CustomerAccess);
+    //    context.Users.RemoveRange(context.Users);
+    //    context.Customers.RemoveRange(context.Customers);
+    //    context.SaveChanges();
 
         Seed(context);
     }

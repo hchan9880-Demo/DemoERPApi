@@ -30,7 +30,10 @@ CREATE TABLE dbo.RefreshTokens
     CreatedDate    DATETIME2 NOT NULL
         CONSTRAINT DF_RefreshTokens_CreatedDate DEFAULT SYSUTCDATETIME(),
     RevokedDate    DATETIME2 NULL,
-    ReplacedBy     NVARCHAR(500) NULL,
+   
+       IsUsed BIT NOT NULL DEFAULT 0,
+
+    CreatedByIP NVARCHAR(50),
 
     CONSTRAINT PK_RefreshTokens PRIMARY KEY (TokenId),
 

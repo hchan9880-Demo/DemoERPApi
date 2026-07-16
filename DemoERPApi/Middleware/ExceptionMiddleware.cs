@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 
 namespace DemoERPApi.Middleware;
@@ -26,8 +27,19 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
+        catch (SecurityTokenException)
+        {
+            context.Response.StatusCode =
+                StatusCodes.Status401Unauthorized;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            context.Response.StatusCode =
+                StatusCodes.Status401Unauthorized;
+        }
         catch (Exception ex)
         {
+      
             _logger.LogError(
                 ex,
                 "Unhandled exception occurred");

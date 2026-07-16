@@ -1077,6 +1077,7 @@ WHERE CRMCustomerID=@id
     // =====================================================
 
     [HttpDelete("{customerId}")]
+    [Authorize]
     public async Task<IActionResult> DeleteCustomer(
         string customerId)
     {

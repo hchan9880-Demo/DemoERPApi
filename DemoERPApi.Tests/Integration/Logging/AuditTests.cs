@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
+using static DemoERPApi.Tests.Helpers.TestData;
 
 
 namespace DemoERPApi.Tests.Integration.Logging;
@@ -106,6 +107,26 @@ public class AuditTests :
     public async Task AUDIT001_PostCustomer_CreatesAuditRecord()
     {
 
+
+
+        var customerIdRandom =
+    $"AUDIT_TEST_001_{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+
+        var request = new CustomerDto
+        {
+            CRMCustomerID = customerIdRandom,
+            FirstName = "Audit",
+            LastName = "Create",
+            Email = "audit.create@test.com",
+            Phone = "6041234567"
+        };
+
+
+
+
+
+        /*
         var request = new CustomerDto
         {
             CRMCustomerID = "AUDIT_TEST_001a",
@@ -114,7 +135,7 @@ public class AuditTests :
             Email = "audit.create@test.com",
             Phone = "6041234567"
         };
-
+        */
 
         var response =
             await Client.PostAsJsonAsync(
@@ -151,16 +172,12 @@ public class AuditTests :
             scope.ServiceProvider
             .GetRequiredService<AppDbContext>();
 
-
-
         var audit =
-            await db.AuditLogs
-            .FirstOrDefaultAsync(x =>
-                x.EntityId == "AUDIT_TEST_001"
-                &&
-                x.Action == "CREATE");
-
-
+    await db.AuditLogs
+    .FirstOrDefaultAsync(x =>
+        x.EntityId == customerIdRandom
+        &&
+        x.Action == "CREATE");
 
         Assert.NotNull(audit);
 

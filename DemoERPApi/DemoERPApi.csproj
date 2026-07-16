@@ -18,6 +18,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Models\LoginResultDto.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Content Remove="appsettings.Test.json" />
 	</ItemGroup>
 
@@ -51,6 +55,7 @@
 				PreserveNewest
 			</CopyToOutputDirectory>
 	  </None>
+	  <None Include="Models\LoginResultDto.cs" />
 	</ItemGroup>
 
 </Project>

@@ -23,7 +23,7 @@ public class AppDbContext : DbContext
 
     // Register AuditLogs DbSet
     public DbSet<AuditLog> AuditLogs { get; set; }
-
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     protected override void OnConfiguring(
         DbContextOptionsBuilder optionsBuilder)
     {
@@ -192,7 +192,47 @@ public class AppDbContext : DbContext
         });
 
 
+        // =====================================================
+        // RefreshToken
+        // =====================================================
 
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+
+            entity.HasKey(e => e.TokenID);
+
+            entity.Property(e => e.TokenID)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Token)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.HasIndex(e => e.Token)
+                .IsUnique();
+
+            entity.Property(e => e.CreatedByIP)
+                .HasMaxLength(45);
+
+            entity.Property(e => e.CreatedDate)
+                .HasColumnType("datetime2");
+
+            entity.Property(e => e.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            entity.Property(e => e.RevokedDate)
+                .HasColumnType("datetime2");
+
+            entity.Property(e => e.IsUsed)
+                .HasDefaultValue(false);
+
+            entity.HasOne(rt => rt.User)
+                .WithMany()               // or .WithMany(u => u.RefreshTokens) if User has a collection
+                .HasForeignKey(rt => rt.UserId)
+                .HasConstraintName("FK_RefreshTokens_Users")
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
 
 

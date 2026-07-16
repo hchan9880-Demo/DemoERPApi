@@ -37,6 +37,7 @@ builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<ILoggingService, LoggingService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 // ======================================
 // CORS
@@ -97,6 +98,95 @@ Console.WriteLine("==============================");
 // ======================================
 // AUTHENTICATION (ONLY ONE JWT SETUP)
 // ======================================
+
+
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+
+        options.DefaultChallengeScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.SaveToken = true;
+
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+
+                //      IssuerSigningKey =
+                //          new SymmetricSecurityKey(
+                //             Encoding.UTF8.GetBytes(
+                //                builder.Configuration["Jwt:Key"]!
+                //            )),
+
+
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtKey)),
+
+
+
+                ValidateIssuer = true,
+                //    ValidIssuer =
+                //       builder.Configuration["Jwt:Issuer"],
+
+                ValidateAudience = true,
+                //    ValidAudience =
+                //         builder.Configuration["Jwt:Audience"],
+
+
+
+
+                ValidIssuer = jwtIssuer,
+
+                ValidAudience = jwtAudience,
+
+
+
+
+
+                ValidateLifetime = true,
+
+                ClockSkew = TimeSpan.Zero
+            };
+
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                context.NoResult();
+
+                context.Response.StatusCode =
+                    StatusCodes.Status401Unauthorized;
+
+                return Task.CompletedTask;
+            },
+
+
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+
+                context.Response.StatusCode =
+                    StatusCodes.Status401Unauthorized;
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+
+
+
+/*
+
 
 builder.Services
     .AddAuthentication(options =>
@@ -188,7 +278,7 @@ builder.Services
             }
         };
     });
-
+*/
 
 
 // ======================================
