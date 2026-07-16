@@ -10,8 +10,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Serilog;
+using Serilog.Events;
+
+// 1. Configure the global logger
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "DemoERPApi")
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 2. Add Serilog to the host
+builder.Host.UseSerilog();
 
 // =====================================================================
 // 1. DATABASE CONFIGURATION
@@ -122,8 +136,13 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>();
 var app = builder.Build();
+
+// 3. Add Serilog request logging middleware
+// This captures Request, Response, and Elapsed time automatically
+app.UseSerilogRequestLogging();
 
 // =====================================================================
 // 6. PIPELINE & MIDDLEWARE
@@ -153,7 +172,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/", () => "Demo ERP API is running!");
+app.MapHealthChecks("/health");
 
-app.Run();
+try
+{
+    Log.Information("Starting web host");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 public partial class Program { }

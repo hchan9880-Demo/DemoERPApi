@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Threading.Tasks;
-
 namespace DemoERPApi.Middleware
 {
     public class LoggingMiddleware
@@ -17,7 +18,7 @@ namespace DemoERPApi.Middleware
             _next = next;
             _logger = logger;
         }
-
+  
         public async Task InvokeAsync(HttpContext context)
         {
             var stopwatch = Stopwatch.StartNew();
