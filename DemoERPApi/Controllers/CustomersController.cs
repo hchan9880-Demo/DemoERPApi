@@ -1,22 +1,22 @@
 ﻿using DemoERPApi.Data;
 using DemoERPApi.Exceptions;
+using DemoERPApi.Interfaces;
 using DemoERPApi.Models;
 using DemoERPApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using DemoERPApi.Exceptions;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 
 namespace DemoERPApi.Controllers;
+
 
 [Authorize]
 [ApiController]
@@ -26,30 +26,27 @@ public class CustomerController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<CustomerController> _logger;
     private readonly IAuditService _auditService;
+    private readonly Services.ICustomerService _customerService;
     private readonly string _connectionString;
 
+
     public CustomerController(
-     AppDbContext context,
-     ILogger<CustomerController> logger,
-     IConfiguration configuration,
-     IAuditService auditService)
+        AppDbContext context,
+        ILogger<CustomerController> logger,
+        IConfiguration configuration,
+        IAuditService auditService,
+        Services.ICustomerService customerService)
     {
         _context = context;
         _logger = logger;
         _auditService = auditService;
+        _customerService = customerService;
 
-      /*
-       _connectionString =
-            configuration.GetConnectionString("DemoERPConnection")
-            ?? throw new InvalidOperationException(
-                "Missing connection string");
-      */
         _connectionString =
-    configuration.GetConnectionString(
-        "DemoERPConnection");
-
-
+            configuration.GetConnectionString(
+                "DemoERPConnection");
     }
+
 
 
 
@@ -1066,6 +1063,20 @@ WHERE CRMCustomerID=@id
             currentUser);
 
 
+
+        return Ok(
+    new ApiResponse<Customer>
+    {
+        Success = true,
+        Data = customer,
+        TraceId = HttpContext.TraceIdentifier
+    });
+
+
+
+
+
+
         return Ok(new
         {
             message =
@@ -1343,6 +1354,26 @@ WHERE CRMCustomerID=@id
 
         return Ok(
             "Customer deleted successfully");
+    }
+
+
+
+
+
+
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetCustomers() // Change to async
+    {
+        // Use the renamed method and await it
+        var customers = await _customerService.GetCustomersAsync();
+
+        return Ok(new ApiResponse<IEnumerable<Customer>>
+        {
+            Success = true,
+            Data = customers,
+            TraceId = HttpContext.TraceIdentifier
+        });
     }
 
 

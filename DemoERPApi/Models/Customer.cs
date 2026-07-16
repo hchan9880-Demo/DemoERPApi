@@ -19,5 +19,9 @@ namespace DemoERPApi.Models
 
         public DateTime LastUpdated { get; set; }
 
+        public static implicit operator Customer(CustomerDto v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -11,6 +11,9 @@ namespace DemoERPApi.Services
         Task<Customer?> GetCustomerAsync(
             string crmCustomerId);
 
+        // Fixed: Renamed to Async to match implementation
+        Task<IEnumerable<Customer>> GetCustomersAsync();
+
         Task<bool> DeleteCustomerAsync(
             string crmCustomerId);
     }
