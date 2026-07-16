@@ -35,6 +35,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ILoggingService, LoggingService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
@@ -350,7 +351,6 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 
-
 // ======================================
 // DEVELOPMENT TOOLS
 // ======================================
@@ -430,11 +430,24 @@ SQL Server
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<RequestIdMiddleware>();
-app.UseMiddleware<LoggingMiddleware>();
-//app.UseMiddleware<ExceptionMiddleware>();
+
+
+
+// ======================================
+// HTTP PIPELINE
+// ======================================
+
+// Global exception handling
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+// Request correlation ID
+app.UseMiddleware<RequestIdMiddleware>();
+
+// Request/Response logging
+app.UseMiddleware<LoggingMiddleware>();
+
+
+app.UseHttpsRedirection();
 
 
 app.UseAuthentication();
