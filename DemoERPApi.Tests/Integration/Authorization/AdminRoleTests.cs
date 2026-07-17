@@ -175,46 +175,89 @@ public class AdminRoleTests
     //      ↓
     // Return 200 OK
     // ===================================================================================
+
     [Fact]
     public async Task AUTH_011b_AdminUpdatesAnotherCustomerProfile_ReturnsOk()
     {
-
-        var testId =
-            "CRM_ADMIN_PUT_011B";
-
+        var testId = "CRM_ADMIN_PUT_011B";
 
         TestAuthHelper.SetAdminToken(_client);
-
-
 
         await CustomerSeedHelper.SeedCustomer(
             _client,
             testId,
             _output);
 
+        var payload = GetValidPayload(testId);
+        payload.FirstName = "AdminModifiedExternal";
 
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Customer/{testId}",
+            payload);
 
-        var payload =
-            GetValidPayload(testId);
-
-
-        payload.FirstName =
-            "AdminModifiedExternal";
-
-
-
-        var response =
-            await _client.PutAsJsonAsync(
-                $"/api/Customer/{testId}",
-                payload);
-
-
+        // --- DEBUGGING BLOCK ---
+        if (response.StatusCode == HttpStatusCode.InternalServerError)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _output.WriteLine("================ SERVER ERROR DETAILS ================");
+            _output.WriteLine(errorContent);
+            _output.WriteLine("======================================================");
+        }
+        // -----------------------
 
         Assert.Equal(
             HttpStatusCode.OK,
             response.StatusCode);
-
     }
+
+
+
+
+
+
+
+
+
+    /* [Fact]
+     public async Task AUTH_011b_AdminUpdatesAnotherCustomerProfile_ReturnsOk()
+     {
+
+         var testId =
+             "CRM_ADMIN_PUT_011B";
+
+
+         TestAuthHelper.SetAdminToken(_client);
+
+
+
+         await CustomerSeedHelper.SeedCustomer(
+             _client,
+             testId,
+             _output);
+
+
+
+         var payload =
+             GetValidPayload(testId);
+
+
+         payload.FirstName =
+             "AdminModifiedExternal";
+
+
+
+         var response =
+             await _client.PutAsJsonAsync(
+                 $"/api/Customer/{testId}",
+                 payload);
+
+
+
+         Assert.Equal(
+             HttpStatusCode.OK,
+             response.StatusCode);
+
+     }*/
 
     // ===================================================================================
     // AUTH-011c: Admin deletes another user's customer
