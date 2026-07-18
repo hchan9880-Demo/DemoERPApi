@@ -347,6 +347,11 @@ AND LOWER(Username)=LOWER(@username)
         if (string.IsNullOrWhiteSpace(currentUser))
             return Unauthorized();
 
+     
+
+
+
+
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync(); // Asynchronous DB connection opening
 
@@ -516,8 +521,15 @@ AND LOWER(Username)=LOWER(@username)
 
 
 
+      //  if (!isAdmin && !isQA && !isCustomer)
+    //        return Forbid();
+
         if (!isAdmin && !isQA && !isCustomer)
             return Forbid();
+
+
+
+
 
         // QA users can only sync customers assigned to them
         if (isQA)
@@ -554,13 +566,13 @@ AND LOWER(Username)=LOWER(@username)
 
         if (result != null)
         {
-            bool isDeleted = Convert.ToBoolean(result);
+         //   bool isDeleted = Convert.ToBoolean(result);
 
             // ================================================
             // ACTIVE CUSTOMER -> DUPLICATE
             // ================================================
-            if (!isDeleted)
-            {
+          //  if (!isDeleted)
+         //   {
                 _logger.LogWarning(
                     "Duplicate customer detected {CRMCustomerID}",
                     customer.CRMCustomerID);
@@ -576,7 +588,7 @@ AND LOWER(Username)=LOWER(@username)
 
                 return Conflict(
                     "Customer already exists.");
-            }
+         //   }
 
             // ================================================
             // SOFT-DELETED CUSTOMER -> RESTORE
@@ -621,7 +633,16 @@ AND LOWER(Username)=LOWER(@username)
                 currentUser);
 
 
-            return Ok("Customer restored successfully.");
+            //return Ok("Customer restored successfully.");
+//
+             return Ok(new ApiResponse<IEnumerable<Customer>>
+     {
+         Success = true,
+         Message = "Customer restored successfully.",
+         Data = new List<Customer> { customer },
+         TraceId = HttpContext.TraceIdentifier
+     });
+
         }
 
         // =====================================================
@@ -847,10 +868,16 @@ AND LOWER(Username)=LOWER(@username)
 
         if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
         {
-            if (!CanAccessCustomer(customerId))
-                return Forbid();
-        }
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                return NotFound();
+            }
 
+            if (!CanAccessCustomer(customerId))
+            {
+                return Forbid();
+            }
+        }
         // =====================================================
         // DUPLICATE CRM CUSTOMER ID CHECK
         // =====================================================
@@ -1141,21 +1168,28 @@ AND LOWER(Username)=LOWER(@username)
         return Ok("Customer deleted successfully");
     }
 
-
     [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetCustomers() // Change to async
+    // [Authorize(Roles = "Admin")] <-- Remove this so other roles can hit the route
+    public async Task<IActionResult> GetCustomers()
     {
-        // Use the renamed method and await it
-        var customers = await _customerService.GetCustomersAsync();
+        var role = GetRole(); // Retrieve the user's role from the JWT token
 
-        return Ok(new ApiResponse<IEnumerable<Customer>>
+        // If the user is a "Customer" (or anything other than Admin), return 404 NotFound
+        if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
         {
-            Success = true,
-            Data = customers,
-            TraceId = HttpContext.TraceIdentifier
-        });
+            return NotFound();
+        }
+
+        // Admins continue but not found due null or empty
+        var customers = await _customerService.GetCustomersAsync();
+        return NotFound();
+
+
+    
     }
+
+
+
 
 
 

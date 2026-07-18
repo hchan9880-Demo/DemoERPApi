@@ -1,100 +1,72 @@
-# Locate the file (searches recursively if nested)
-$trxFile = Get-ChildItem -Path . -Filter "test_results.trx" -Recurse | Select-Object -First 1
+# 1. Locate the file dynamically
+$searchRoot = "C:\Users\KingBoo\source\repos\DemoERPApi"
+$trxFile = Get-ChildItem -Path $searchRoot -Filter "test_results.trx" -Recurse -File | 
+           Sort-Object LastWriteTime -Descending | 
+           Select-Object -First 1
 
 if ($trxFile) {
     [xml]$xml = Get-Content $trxFile.FullName
     
-    # Extract overall summary statistics
-    $counters = $xml.TestRun.ResultSummary.Counters
-    $outcome = $xml.TestRun.ResultSummary.outcome
-
-    # Set up the HTML document wrapper and CSS styles
+    # 2. Setup Namespace Manager
+    $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+    $ns.AddNamespace("t", $xml.DocumentElement.NamespaceURI)
+    
+    # Extract Summary
+    $counters = $xml.SelectSingleNode("//t:ResultSummary/t:Counters", $ns)
+    $outcome = $xml.SelectSingleNode("//t:ResultSummary", $ns).outcome
+    
+    # 3. Build HTML Header
     $html = @"
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Milestone 4.7 Full Test Run Summary</title>
+    <title>Test Run Summary</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; background-color: #f8f9fa; color: #333; }
-        h1 { border-bottom: 2px solid #dee2e6; padding-bottom: 10px; color: #212529; }
-        h2 { margin-top: 30px; color: #495057; }
-        summary { font-size: 1.3em; font-weight: bold; cursor: pointer; padding: 10px; background: #fff; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; outline: none; }
-        summary:hover { background: #f1f3f5; }
-        .summary-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: inline-block; min-width: 300px; margin-bottom: 20px; }
-        .summary-item { margin: 10px 0; font-size: 1.1em; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; }
-        .badge-total { background-color: #e9ecef; color: #495057; }
+        body { font-family: sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .summary-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; }
         .badge-passed { background-color: #d4edda; color: #155724; }
         .badge-failed { background-color: #f8d7da; color: #721c24; }
-        
-        /* Failure Styles */
-        .failure-card { background: #fff; border-left: 5px solid #dc3545; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-left: 10px; }
-        .failure-title { font-weight: bold; color: #c92a2a; font-size: 1.1em; margin-bottom: 5px; }
-        .error-msg { background: #fdf2f2; color: #b02a37; border: 1px solid #f5c2c7; padding: 10px; border-radius: 4px; font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.9em; white-space: pre-wrap; margin-top: 5px; }
-        
-        /* Success Styles */
-        .success-card { background: #fff; border-left: 5px solid #28a745; padding: 12px; margin-bottom: 10px; border-radius: 0 8px 8px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-left: 10px; }
-        .success-title { font-weight: bold; color: #2b8a3e; font-size: 1.05em; }
+        details { background: #fff; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        summary { font-weight: bold; cursor: pointer; padding: 5px; }
+        .failure-card { border-left: 5px solid #dc3545; padding: 10px; margin: 10px 0; background: #fff; }
+        .success-card { border-left: 5px solid #28a745; padding: 10px; margin: 10px 0; background: #fff; }
+        .error-msg { background: #fdf2f2; padding: 5px; font-family: monospace; white-space: pre-wrap; font-size: 0.9em; }
     </style>
 </head>
 <body>
-
-    <h1>Milestone 4.7 Test Run Summary</h1>
-    
+    <h1>Milestone 6.0 Test Run Summary</h1>
     <div class="summary-card">
-        <div class="summary-item"><strong>Total Tests:</strong> <span class="badge badge-total">$($counters.total)</span></div>
-        <div class="summary-item"><strong>Passed:</strong> <span class="badge badge-passed">$($counters.passed)</span></div>
-        <div class="summary-item"><strong>Failed:</strong> <span class="badge badge-failed">$($counters.failed)</span></div>
-        <div class="summary-item"><strong>Overall Outcome:</strong> <strong>$outcome</strong></div>
+        <div><strong>Total:</strong> $($counters.total)</div>
+        <div><strong>Passed:</strong> <span class="badge badge-passed">$($counters.passed)</span></div>
+        <div><strong>Failed:</strong> <span class="badge badge-failed">$($counters.failed)</span></div>
+        <div><strong>Overall Outcome:</strong> $outcome</div>
     </div>
-
-    <details open>
-        <summary style="color: #b02a37; border-left: 5px solid #dc3545;">[X] Failed Tests ($($counters.failed))</summary>
 "@
 
-    # Add failures
-    $allTests = $xml.TestRun.Results.UnitTestResult
-    $allTests | Where-Object { $_.outcome -eq "Failed" } | ForEach-Object {
+    # 4. Process Failed Tests (Sorted A-Z)
+    $html += '<details open><summary style="color: #b02a37;">[X] Failed Tests</summary>'
+    $failedTests = @($xml.SelectNodes("//t:UnitTestResult[@outcome='Failed']", $ns))
+    $failedTests | Sort-Object -Property testName | ForEach-Object {
         $testName = $_.testName
-        $errorMessage = if ($_.Output.ErrorInfo.Message) { $_.Output.ErrorInfo.Message.Trim() } else { "No explicit error message found." }
-        $safeError = [System.Security.SecurityElement]::Escape($errorMessage)
-
-        $html += @"
-        <div class="failure-card">
-            <div class="failure-title">[FAIL] $testName</div>
-            <div class="error-msg">$safeError</div>
-        </div>
-"@
+        $msg = if ($_.Output.ErrorInfo.Message) { $_.Output.ErrorInfo.Message.Trim() } else { "No error message." }
+        $html += "<div class='failure-card'><strong>[FAIL] $testName</strong><div class='error-msg'>$msg</div></div>"
     }
+    $html += '</details>'
 
-    $html += @"
-    </details>
-
-    <details>
-        <summary style="color: #2b8a3e; border-left: 5px solid #28a745; margin-top: 20px;">[OK] Passed Tests ($($counters.passed))</summary>
-"@
-
-    # Add passes
-    $allTests | Where-Object { $_.outcome -eq "Passed" } | ForEach-Object {
+    # 5. Process Passed Tests (Sorted A-Z)
+    $html += '<details><summary style="color: #2b8a3e;">[OK] Passed Tests</summary>'
+    $passedTests = @($xml.SelectNodes("//t:UnitTestResult[@outcome='Passed']", $ns))
+    $passedTests | Sort-Object -Property testName | ForEach-Object {
         $testName = $_.testName
-        $html += @"
-        <div class="success-card">
-            <div class="success-title">[PASS] $testName</div>
-        </div>
-"@
+        $html += "<div class='success-card'><strong>[PASS] $testName</strong></div>"
     }
+    $html += '</details></body></html>'
 
-    $html += @"
-    </details>
-
-</body>
-</html>
-"@
-
-    # Output to HTML using clean ASCII formatting
-    $html | Out-File -FilePath "Milestone_4_7_Report.html" -Encoding ascii
-    Write-Host "Success! Clean HTML report generated without character breaks." -ForegroundColor Green
+    # 6. Save and Finish
+    $html | Out-File -FilePath "Report.html" -Encoding utf8
+    Write-Host "Success! 'Report.html' generated in $(Get-Location)." -ForegroundColor Green
 } else {
-    Write-Error "Could not find test_results.trx file. Please run 'dotnet test --logger trx' first."
+    Write-Error "Could not find 'test_results.trx'."
 }

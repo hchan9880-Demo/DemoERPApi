@@ -3,3 +3,21 @@ dotnet test --logger "trx;LogFileName=test_results.trx"
 
 
 PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtmlBoth.ps1
+
+
+dotnet test -- --logger "trx;LogFileName=test_results.trx"
+
+# Check if this command actually produces a file
+dotnet test --logger "trx;LogFileName=test_results.trx"
+
+# Then verify where it landed
+Get-ChildItem -Recurse -Filter "test_results.trx"
+
+dotnet test --logger "trx;LogFilePrefix=test_results"
+
+# Use single quotes to protect the semicolon
+dotnet test '--logger:trx;LogFileName=test_results.trx'
+
+dotnet test --logger "trx;LogFileName=test_results.trx" --diag:log.txt
+
+
