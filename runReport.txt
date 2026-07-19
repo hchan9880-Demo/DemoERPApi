@@ -1,5 +1,21 @@
+
+PS C:\Users\KingBoo\source\repos\DemoERPApi> dotnet test --logger "trx;LogFileName=test_results.trx"
+
+PS C:\Users\KingBoo\source\repos\DemoERPApi> PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtmlBoth.ps1
+
+
+
+
+
+
+
 PowerShell
 dotnet test --logger "trx;LogFileName=test_results.trx"
 
-
+C:\Users\KingBoo\source\repos\DemoERPApi
 PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtmlBoth.ps1
+
+
+"C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\TestResults\test_results.trx"
+
+"C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\TestResults\test_results.trx"

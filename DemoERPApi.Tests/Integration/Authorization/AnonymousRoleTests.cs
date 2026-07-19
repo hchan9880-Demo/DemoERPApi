@@ -70,11 +70,11 @@ public class AnonymousRoleTests
         _output = output;
     }
 
-    private static CustomerDto GetValidPayload(
+    private static CustomersDto GetValidPayload(
         string customerId)
     {
 
-        return new CustomerDto
+        return new CustomersDto
         {
             CRMCustomerID = customerId,
             FirstName = "Unauthorized",

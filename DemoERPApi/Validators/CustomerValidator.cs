@@ -3,7 +3,7 @@ using DemoERPApi.Models;
 
 namespace DemoERPApi.Validators
 {
-    public class CustomerValidator : AbstractValidator<CustomerDto>
+    public class CustomerValidator : AbstractValidator<CustomersDto>
     {
         public CustomerValidator()
         {

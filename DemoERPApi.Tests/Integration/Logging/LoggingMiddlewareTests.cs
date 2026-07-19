@@ -65,7 +65,7 @@ public class LoggingMiddlewareTests :
     [Fact(DisplayName = "LOG-001 Customer successfully created")]
     public async Task LOG_001_CustomerSuccessfullyCreated_ReturnsOk()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "LOG001_TEST_999996",
             FirstName = "ABC",
@@ -101,7 +101,7 @@ public class LoggingMiddlewareTests :
     [Fact(DisplayName = "LOG-002 Duplicate customer submitted")]
     public async Task LOG_002_DuplicateCustomer_ReturnsConflict()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "LOG002",
             FirstName = "Duplicate",
@@ -130,7 +130,7 @@ public class LoggingMiddlewareTests :
     [Fact(DisplayName = "LOG-003 Invalid customer payload")]
     public async Task LOG_003_InvalidPayload_ReturnsBadRequest()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "",
             FirstName = "",

@@ -58,9 +58,9 @@ public class AdminRoleTests
 
 
 
-    private static CustomerDto GetValidPayload(string customerId)
+    private static CustomersDto GetValidPayload(string customerId)
     {
-        return new CustomerDto
+        return new CustomersDto
         {
             CRMCustomerID = customerId,
             FirstName = "Admin",
@@ -145,7 +145,7 @@ public class AdminRoleTests
 
 
         var customer =
-            await response.Content.ReadFromJsonAsync<CustomerDto>();
+            await response.Content.ReadFromJsonAsync<CustomersDto>();
 
 
         Assert.NotNull(customer);

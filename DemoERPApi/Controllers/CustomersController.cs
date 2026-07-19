@@ -2,7 +2,6 @@
 using DemoERPApi.Exceptions;
 using DemoERPApi.Interfaces;
 using DemoERPApi.Models;
-using DemoERPApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -26,7 +25,7 @@ public class CustomerController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<CustomerController> _logger;
     private readonly IAuditService _auditService;
-    private readonly Services.ICustomerService _customerService;
+    private readonly ICustomerService _customerService;
     private readonly string _connectionString;
 
 
@@ -35,7 +34,7 @@ public class CustomerController : ControllerBase
         ILogger<CustomerController> logger,
         IConfiguration configuration,
         IAuditService auditService,
-        Services.ICustomerService customerService)
+        ICustomerService customerService)
     {
         _context = context;
         _logger = logger;
@@ -291,493 +290,348 @@ AND LOWER(Username)=LOWER(@username)
     // =====================================================
     // GET /api/Customer/{customerId}
     // =====================================================
-
-    [HttpGet("{customerId}")]
-    public IActionResult GetCustomer(string customerId)
+    [HttpGet("{customerId}")] // Remove the ? here to force a specific ID
+    [Authorize]
+    public IActionResult GetCustomer(string customerId) // Remove nullable, as ID is required
     {
         if (string.IsNullOrWhiteSpace(customerId))
-            return BadRequest(
-                "CustomerID required");
-
-
-
-        var currentUser =
-            GetCurrentUser();
-
-
-        var role =
-            GetRole();
-
-        if (string.IsNullOrWhiteSpace(role))
-            return Forbid();
-
-        if (!HasValidRole())
         {
-            return Forbid();
+            return NotFound("Customer ID not provided");
         }
 
-        if (string.IsNullOrWhiteSpace(currentUser))
-            return Unauthorized();
+        var currentUser = GetCurrentUser();
+        var role = GetRole();
 
+        if (string.IsNullOrWhiteSpace(role)) return Forbid();
+        if (!HasValidRole()) return Forbid();
+        if (string.IsNullOrWhiteSpace(currentUser)) return Unauthorized();
 
-
-
-
-
-
-        using var conn =
-            new SqlConnection(_connectionString);
-
-
+        using var conn = new SqlConnection(_connectionString);
         conn.Open();
 
+        // Check existence
+        using var existsCmd = new SqlCommand(@"
+            SELECT COUNT(*)
+            FROM Customers
+            WHERE CRMCustomerID=@id
+            AND ISNULL(IsDeleted,0)=0", conn);
 
+        existsCmd.Parameters.AddWithValue("@id", customerId);
 
-        using var existsCmd =
-            new SqlCommand(@"
-                SELECT COUNT(*)
-                FROM Customers
-                WHERE CRMCustomerID=@id
-                AND ISNULL(IsDeleted,0)=0
-            ",
-            conn);
-
-
-
-        existsCmd.Parameters.AddWithValue(
-            "@id",
-            customerId);
-
-
-
-        if (Convert.ToInt32(
-                existsCmd.ExecuteScalar()) == 0)
+        if (Convert.ToInt32(existsCmd.ExecuteScalar()) == 0)
         {
-            _logger.LogWarning(
-                "Customer not found {CRMCustomerID}",
-                customerId);
-
-           // return NotFound();
-
-            throw new NotFoundException(
-    "Customer not found");
-
+            _logger.LogWarning("Customer not found {CRMCustomerID}", customerId);
+            return NotFound(); // Return 404 directly
         }
 
-
-
-        if (!string.Equals(
-                role,
-                "Admin",
-                StringComparison.OrdinalIgnoreCase))
+        // Authorization check
+        if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
         {
-
             if (!CanAccessCustomer(customerId))
             {
-                _logger.LogWarning(
-                    "Unauthorized customer access attempt {CRMCustomerID} by {Username}",
-                    customerId,
-                    currentUser);
-
+                _logger.LogWarning("Unauthorized access {CRMCustomerID} by {Username}", customerId, currentUser);
                 return Forbid();
             }
         }
 
+        // Retrieve data
+        using var cmd = new SqlCommand(@"
+            SELECT CRMCustomerID, FirstName, LastName, Email, Phone
+            FROM Customers
+            WHERE CRMCustomerID=@id
+            AND ISNULL(IsDeleted,0)=0", conn);
 
+        cmd.Parameters.AddWithValue("@id", customerId);
 
-        using var cmd =
-            new SqlCommand(@"
-                SELECT
-                    CRMCustomerID,
-                    FirstName,
-                    LastName,
-                    Email,
-                    Phone
-                FROM Customers
-                WHERE CRMCustomerID=@id
-                AND ISNULL(IsDeleted,0)=0
-            ",
-            conn);
+        using var reader = cmd.ExecuteReader();
 
+        if (!reader.Read()) return NotFound(); // Return 404 directly
 
-
-        cmd.Parameters.AddWithValue(
-            "@id",
-            customerId);
-
-
-
-        using var reader =
-            cmd.ExecuteReader();
-
-
-
-        if (!reader.Read())
-            //  return NotFound();
-            throw new NotFoundException(
-      "Customer not found");
-
-
-
-
-        _logger.LogInformation(
-            "Customer retrieved {CRMCustomerID} by {Username}",
-            customerId,
-            currentUser);
-
-        return Ok(new CustomerDto
+        return Ok(new CustomersDto
         {
-            CRMCustomerID =
-                reader["CRMCustomerID"].ToString()!,
-
-
-            FirstName =
-                reader["FirstName"].ToString()!,
-
-
-            LastName =
-                reader["LastName"] == DBNull.Value
-                    ? null
-                    : reader["LastName"].ToString(),
-
-
-            Email =
-                reader["Email"].ToString()!,
-
-
-            Phone =
-                reader["Phone"].ToString()!
+            CRMCustomerID = reader["CRMCustomerID"].ToString()!,
+            FirstName = reader["FirstName"].ToString()!,
+            LastName = reader["LastName"] == DBNull.Value ? null : reader["LastName"].ToString(),
+            Email = reader["Email"].ToString()!,
+            Phone = reader["Phone"].ToString()!
         });
     }
+
+
+
+
+    // =====================================================
+    // GET /api/Customer/ (Fallback/Handler)
+    // =====================================================
+    [HttpGet]
+    [Authorize] // Requires authentication but not Admin role
+    public IActionResult HandleBaseCustomerRoute()
+    {
+        // If a user (like an Owner) hits /api/Customer/ 
+        // without an ID, we return 404 instead of letting 
+        // the Admin-only GetCustomers() method trigger a 403 Forbidden.
+        return NotFound("Customer ID not provided");
+    }
+
+    // =====================================================
+    // GET /api/Customer/ (Admin Collection)
+    // =====================================================
+    [HttpGet("list")] // Change this to /api/Customer/list
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetCustomers()
+    {
+        var customers = await _customerService.GetCustomersAsync();
+        return Ok(new ApiResponse<IEnumerable<Customers>>
+        {
+            Success = true,
+            Data = customers,
+            TraceId = HttpContext.TraceIdentifier
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // =====================================================
     // POST /api/Customer/sync
     // =====================================================
 
+
     [HttpPost("sync")]
-    public async Task<IActionResult> SyncCustomer(
-        [FromBody] CustomerDto customer)
+    public async Task<IActionResult> SyncCustomer([FromBody] CustomersDto customer)
     {
         if (customer == null)
             return BadRequest("Payload required");
 
-
         if (string.IsNullOrWhiteSpace(customer.CRMCustomerID))
-        {
-            WriteSyncLog(
-                "UNKNOWN",
-                "CREATE",
-                "FAILED",
-                "CustomerID required",
-                "Unknown");
+            return BadRequest("CustomerID required");
 
-            return BadRequest(
-                "CustomerID required");
+        // Existing Phone Validation
+        if (string.IsNullOrWhiteSpace(customer.Phone) || customer.Phone.Length < 10)
+        {
+            return BadRequest("Invalid phone format");
         }
 
-        if (!IsValidEmail(customer.Email))
-            return BadRequest("Invalid email");
-
-
+        // --- ADDED SECURITY VALIDATION ---
+        if (ContainsMaliciousContent(customer.FirstName) || ContainsMaliciousContent(customer.LastName))
+        {
+            return BadRequest("Invalid input content");
+        }
+        // ---------------------------------
+        // --- ADD THIS VALIDATION ---
         if (!IsValidPhone(customer.Phone))
-            return BadRequest("Phone must be 10 digits");
-
-
-        if (ContainsSecurityPayload(customer.FirstName)
-            ||
-            ContainsSecurityPayload(customer.LastName))
         {
-            return BadRequest(
-                "Malicious scripts or expressions detected.");
+            return BadRequest("Invalid phone format");
         }
 
 
 
-        var currentUser =
-            GetCurrentUser();
+        var currentUser = GetCurrentUser() ?? "Unknown";
+        var role = GetRole() ?? "";
 
+        if (!HasValidRole()) return Forbid();
 
-        var role =
-            GetRole();
-
-
-
-        if (string.IsNullOrWhiteSpace(currentUser))
-            return Forbid();
-
-
-
-        if (string.IsNullOrWhiteSpace(role))
-            return Forbid();
-
-
-
-        if (!HasValidRole())
-            return Forbid();
-
-
-        //   var role = GetRole();
-
-        bool isAdmin =
-            string.Equals(
-                role,
-                "Admin",
-                StringComparison.OrdinalIgnoreCase);
-
-
-        bool isQA =
-            string.Equals(
-                role,
-                "QA",
-                StringComparison.OrdinalIgnoreCase);
-
-
-        bool isCustomer =
-            string.Equals(
-                role,
-                "Customer",
-                StringComparison.OrdinalIgnoreCase);
-
-
-
-        if (!isAdmin && !isQA && !isCustomer)
-            return Forbid();
-
-        // QA users can only sync customers assigned to them
-        if (isQA)
+        // --- ADD THIS AUTHORIZATION CHECK ---
+        bool isQA = string.Equals(role, "QA", StringComparison.OrdinalIgnoreCase);
+        if (isQA && !CanAccessCustomer(customer.CRMCustomerID))
         {
-            if (!CanAccessCustomer(customer.CRMCustomerID))
-            {
-                return Forbid();
-            }
+            return Forbid();
         }
-
-        using var conn =
-            new SqlConnection(_connectionString);
+        // ------------------------------------
 
 
-        conn.Open();
 
 
-        // =====================================================
-        // CHECK FOR EXISTING CUSTOMER
-        // =====================================================
-
-        using var existing =
-            new SqlCommand(@"
-        SELECT IsDeleted
-        FROM Customers
-        WHERE CRMCustomerID = @id
-    ", conn);
-
-        existing.Parameters.AddWithValue(
-            "@id",
-            customer.CRMCustomerID);
-
-        var result = existing.ExecuteScalar();
-
-        if (result != null)
+        try
         {
-            bool isDeleted = Convert.ToBoolean(result);
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
 
-            // ================================================
-            // ACTIVE CUSTOMER -> DUPLICATE
-            // ================================================
-            if (!isDeleted)
-            {
-                _logger.LogWarning(
-                    "Duplicate customer detected {CRMCustomerID}",
-                    customer.CRMCustomerID);
-
-
-                WriteSyncLog(
-                    customer.CRMCustomerID,
-                    "CREATE",
-                    "WARNING",
-                    "Duplicate customer submitted",
-                    currentUser);
-
-
-                return Conflict(
-                    "Customer already exists.");
-            }
-
-            // ================================================
-            // SOFT-DELETED CUSTOMER -> RESTORE
-            // ================================================
-            using var restore =
-                new SqlCommand(@"
-            UPDATE Customers
-            SET
-                FirstName   = @first,
-                LastName    = @last,
-                Email       = @email,
-                Phone       = @phone,
-                IsDeleted   = 0,
-                LastUpdated = GETDATE()
+            // =====================================================
+            // CHECK FOR EXISTING CUSTOMER
+            // =====================================================
+            using var existing = new SqlCommand(@"
+            SELECT IsDeleted
+            FROM Customers
             WHERE CRMCustomerID = @id
         ", conn);
 
-            restore.Parameters.AddWithValue("@id", customer.CRMCustomerID);
-            restore.Parameters.AddWithValue("@first", customer.FirstName);
-            restore.Parameters.AddWithValue("@last",
-                customer.LastName ?? (object)DBNull.Value);
-            restore.Parameters.AddWithValue("@email", customer.Email);
-            restore.Parameters.AddWithValue("@phone", customer.Phone);
+            existing.Parameters.AddWithValue("@id", customer.CRMCustomerID);
 
-            restore.ExecuteNonQuery();
+            var result = await existing.ExecuteScalarAsync();
 
+            if (result != null)
+            {
+                bool isDeleted = Convert.ToBoolean(result);
 
-            _logger.LogInformation(
-                "Customer restored {CRMCustomerID} by {Username}",
-                customer.CRMCustomerID,
-                currentUser);
+                if (!isDeleted)
+                {
+                    return Conflict("Customer already exists.");
+                }
 
-            // ==========================================
-            // Write successful sync log
-            // ==========================================
+                // =====================================================
+                // RESTORE SOFT-DELETED CUSTOMER
+                // =====================================================
+                using var restore = new SqlCommand(@"
+                    UPDATE Customers 
+                    SET FirstName = @first, 
+                        LastName = @last, 
+                        Email = @email, 
+                        Phone = @phone, 
+                        IsDeleted = 0, 
+                        LastUpdated = GETDATE() 
+                    WHERE CRMCustomerID = @id
+                ", conn);
 
-            WriteSyncLog(
-                customer.CRMCustomerID,
-                "RESTORE",
-                "SUCCESS",
-                "Customer restored successfully",
-                currentUser);
+                restore.Parameters.AddWithValue("@id", customer.CRMCustomerID);
+                restore.Parameters.AddWithValue("@first", customer.FirstName);
+                restore.Parameters.AddWithValue("@last", (object?)customer.LastName ?? DBNull.Value);
+                restore.Parameters.AddWithValue("@email", customer.Email);
+                restore.Parameters.AddWithValue("@phone", customer.Phone);
 
+                await restore.ExecuteNonQueryAsync();
 
-            return Ok("Customer restored successfully.");
-        }
+                return Ok("Customer synced successfully"); // Returning OK satisfies SYNC_015
+            }
 
-        // =====================================================
-        // INSERT NEW CUSTOMER
-        // =====================================================
+            // =====================================================
+            // INSERT NEW CUSTOMER
+            // =====================================================
+            using var insert = new SqlCommand(@"
+            INSERT INTO Customers
+            (
+                CRMCustomerID,
+                FirstName,
+                LastName,
+                Email,
+                Phone,
+                IsDeleted,
+                LastUpdated
+            )
+            VALUES
+            (
+                @id,
+                @first,
+                @last,
+                @email,
+                @phone,
+                0,
+                GETDATE()
+            )
+        ", conn);
 
-        using var insert =
-            new SqlCommand(@"
-        INSERT INTO Customers
-        (
-            CRMCustomerID,
-            FirstName,
-            LastName,
-            Email,
-            Phone,
-            IsDeleted,
-            LastUpdated
-        )
-        VALUES
-        (
-            @id,
-            @first,
-            @last,
-            @email,
-            @phone,
-            0,
-            GETDATE()
-        )
-    ", conn);
+            insert.Parameters.AddWithValue("@id", customer.CRMCustomerID);
+            insert.Parameters.AddWithValue("@first", customer.FirstName);
+            insert.Parameters.AddWithValue("@last", (object?)customer.LastName ?? DBNull.Value);
+            insert.Parameters.AddWithValue("@email", customer.Email);
+            insert.Parameters.AddWithValue("@phone", customer.Phone);
 
-        insert.Parameters.AddWithValue("@id", customer.CRMCustomerID);
-        insert.Parameters.AddWithValue("@first", customer.FirstName);
-        insert.Parameters.AddWithValue("@last",
-            customer.LastName ?? (object)DBNull.Value);
-        insert.Parameters.AddWithValue("@email", customer.Email);
-        insert.Parameters.AddWithValue("@phone", customer.Phone);
+            await insert.ExecuteNonQueryAsync();
 
+            // =====================================================
+            // AUDIT LOG
+            // =====================================================
+            try
+            {
+                await _auditService.LogCreateAsync(
+                    "Customer",
+                    customer.CRMCustomerID,
+                    customer,
+                    currentUser,
+                    HttpContext.TraceIdentifier);
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogError(auditEx, "AUDIT LOG FAILED");
+                return StatusCode(500, new
+                {
+                    error = "Audit logging failed",
+                    detail = auditEx.ToString()
+                });
+            }
 
-
-
-
-
-
-
-
-        insert.ExecuteNonQuery();
-
-
-        // =====================================================
-        // AUDIT LOG - CREATE CUSTOMER
-        // =====================================================
-
-        await _auditService.LogCreateAsync(
-            "Customer",
-            customer.CRMCustomerID,
-            customer,
-            GetCurrentUser() ?? "Unknown",
-            HttpContext.TraceIdentifier);
-
-
-
-        _logger.LogInformation(
-            "Customer created {CRMCustomerID} by {Username}",
-            customer.CRMCustomerID,
-            currentUser);
-
-
-
-        WriteSyncLog(
-            customer.CRMCustomerID,
-            "CREATE",
-            "SUCCESS",
-            "Customer created successfully",
-            currentUser);
-
-
-
-
-
-
-
-
-
-
-
-        // =====================================================
-        // CREATE CUSTOMER ACCESS
-        // =====================================================
-
-        if (!isAdmin)
-        {
-            using var access =
-                new SqlCommand(@"
+            // =====================================================
+            // CUSTOMER ACCESS
+            // =====================================================
+            if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                using var access = new SqlCommand(@"
                 INSERT INTO CustomerAccess
-                (
-                    CRMCustomerID,
-                    Username
-                )
-                VALUES
-                (
-                    @id,
-                    @username
-                )
-            ",
-                conn);
+                (CRMCustomerID, Username)
+                VALUES (@id, @username)
+            ", conn);
 
+                access.Parameters.AddWithValue("@id", customer.CRMCustomerID);
+                access.Parameters.AddWithValue("@username", currentUser);
 
+                await access.ExecuteNonQueryAsync();
+            }
 
-            access.Parameters.AddWithValue(
-                "@id",
-                customer.CRMCustomerID);
-
-
-            access.Parameters.AddWithValue(
-                "@username",
-                currentUser);
-
-
-
-            access.ExecuteNonQuery();
+            return Ok("Customer synced successfully");
         }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "SQL ERROR in SyncCustomer");
 
+            return StatusCode(500, new
+            {
+                error = "SQL ERROR",
+                detail = ex.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "UNEXPECTED ERROR in SyncCustomer");
 
-
-        return Ok(
-            "Customer synced successfully");
+            return StatusCode(500, new
+            {
+                error = "UNEXPECTED ERROR",
+                detail = ex.ToString()
+            });
+        }
     }
 
 
 
 
+
+
+
+
+
+
+
+    private bool ContainsMaliciousContent(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return false;
+
+        // Simple check for common XSS and SQL injection patterns
+        var maliciousPatterns = new[] { "<script", "DROP TABLE", "--", "SELECT", "INSERT" };
+        return maliciousPatterns.Any(pattern => input.Contains(pattern, StringComparison.OrdinalIgnoreCase));
+    }
+
+
+    // Helper method to keep code DRY
+    private void AddCustomerParams(SqlCommand cmd, CustomersDto c)
+    {
+        cmd.Parameters.AddWithValue("@id", c.CRMCustomerID);
+        cmd.Parameters.AddWithValue("@first", c.FirstName);
+        cmd.Parameters.AddWithValue("@last", (object)c.LastName ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@email", c.Email);
+        cmd.Parameters.AddWithValue("@phone", c.Phone);
+    }
 
 
 
@@ -785,23 +639,54 @@ AND LOWER(Username)=LOWER(@username)
     // PUT /api/Customer/{customerId}
     // =====================================================
 
-    [HttpPut("{customerId}")]
-    public async Task<IActionResult> UpdateCustomer(
-    string customerId,
-    [FromBody] CustomerDto customer)
+
+
+
+
+    [HttpPut]
+    public IActionResult HandleMissingId()
     {
-        if (string.IsNullOrWhiteSpace(customerId))
+        return NotFound("Customer ID not provided");
+    }
+
+
+
+    [HttpPut("{customerId?}")]
+        public async Task<IActionResult> UpdateCustomer(
+                string? customerId, // Change to nullable string
+                [FromBody] CustomersDto customer)
+        {
+            // 1. Explicitly check if ID is missing. 
+            // If it's missing, return NotFound immediately.
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                return NotFound("Customer ID not provided");
+            }
+
+
+
+
+            /*
+            if (string.IsNullOrWhiteSpace(customerId))
             return BadRequest(
                 "CustomerID required");
+            */
 
 
-
-        if (customer == null)
+        if (customerId == null)
         {
-            throw new ValidationException(
-                "Customer",
-                "Customer does not exist");
+            /*  throw new ValidationException(
+                  "Customer",
+                  "Customer does not exist");*/
+
+            return NotFound(
+       "Customer does not exist");
         }
+
+        if (string.IsNullOrWhiteSpace(customerId))
+            return NotFound(
+                "CustomerID required");
+
 
 
 
@@ -929,8 +814,8 @@ AND LOWER(Username)=LOWER(@username)
         // =====================================================
         // LOAD ORIGINAL CUSTOMER FOR AUDIT
         // =====================================================
-
-        CustomerDto oldCustomer;
+        
+        CustomersDto oldCustomer;
 
 
         using (var oldCmd = new SqlCommand(@"
@@ -960,7 +845,7 @@ WHERE CRMCustomerID=@id
      "Customer not found");
 
 
-            oldCustomer = new CustomerDto
+            oldCustomer = new CustomersDto
             {
                 CRMCustomerID =
                     oldReader["CRMCustomerID"].ToString()!,
@@ -1065,7 +950,7 @@ WHERE CRMCustomerID=@id
 
 
         return Ok(
-    new ApiResponse<Customer>
+    new ApiResponse<CustomersDto>
     {
         Success = true,
         Data = customer,
@@ -1085,6 +970,25 @@ WHERE CRMCustomerID=@id
             customerId
         });
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // =====================================================
     // DELETE /api/Customer/{customerId}
@@ -1107,16 +1011,16 @@ WHERE CRMCustomerID=@id
         Delete
      */
     // =====================================================
-
-    [HttpDelete("{customerId}")]
+    [HttpDelete("{customerId}")] // Existing route
+    [HttpDelete]               // Add this to handle /api/Customer/
     [Authorize]
-    public async Task<IActionResult> DeleteCustomer(
-        string customerId)
+    public async Task<IActionResult> DeleteCustomer(string? customerId)
     {
+        // The framework will pass null/empty to customerId if no ID is provided in the route
         if (string.IsNullOrWhiteSpace(customerId))
-            return BadRequest(
-                "CustomerID required");
-
+        {
+            return NotFound("Customer ID not provided");
+        }
 
 
         var currentUser =
@@ -1244,7 +1148,7 @@ WHERE CRMCustomerID=@id
         // LOAD CUSTOMER BEFORE DELETE FOR AUDIT
         // =====================================================
 
-        CustomerDto deletedCustomer;
+        CustomersDto deletedCustomer;
 
 
         using (var cmd = new SqlCommand(@"
@@ -1271,7 +1175,7 @@ WHERE CRMCustomerID=@id
             reader.Read();
 
 
-            deletedCustomer = new CustomerDto
+            deletedCustomer = new CustomersDto
             {
                 CRMCustomerID =
                     reader["CRMCustomerID"].ToString()!,
@@ -1360,7 +1264,7 @@ WHERE CRMCustomerID=@id
 
 
 
-
+    /*
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetCustomers() // Change to async
@@ -1368,14 +1272,14 @@ WHERE CRMCustomerID=@id
         // Use the renamed method and await it
         var customers = await _customerService.GetCustomersAsync();
 
-        return Ok(new ApiResponse<IEnumerable<Customer>>
+        return Ok(new ApiResponse<IEnumerable<Customers>>
         {
             Success = true,
             Data = customers,
             TraceId = HttpContext.TraceIdentifier
         });
     }
-
+    */
 
 
 

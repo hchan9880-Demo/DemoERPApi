@@ -124,7 +124,7 @@ public static class CustomerSeedHelper
                 // =====================================================
 
                 var customer =
-                    new CustomerDto
+                    new CustomersDto
                     {
                         CRMCustomerID = id,
                         FirstName = "Test",
@@ -165,9 +165,13 @@ public static class CustomerSeedHelper
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new Exception(
-                        $"Customer seed failed. Status={response.StatusCode}. Body={body}");
-                }
+                output?.WriteLine("========== CUSTOMER SYNC FAILED ==========");
+                output?.WriteLine($"Status : {response.StatusCode}");
+                output?.WriteLine($"Body   : {body}");
+
+                throw new Exception(
+                    $"Customer seed failed. Status={response.StatusCode}. Body={body}");
+            }
 
 
 
@@ -203,7 +207,7 @@ public static class CustomerSeedHelper
 
 
             var customer =
-                new CustomerDto
+                new CustomersDto
                 {
                     CRMCustomerID = id,
                     FirstName = "Test",
@@ -251,7 +255,7 @@ public static class CustomerSeedHelper
 
     */
 
-
+    /*
     public static async Task VerifyCustomerAccess(
      IServiceProvider services,
      string username,
@@ -262,6 +266,7 @@ public static class CustomerSeedHelper
 
         var db = scope.ServiceProvider
             .GetRequiredService<AppDbContext>();
+
 
 
         var access = await db.CustomerAccess
@@ -283,6 +288,43 @@ public static class CustomerSeedHelper
 
         Assert.NotNull(access);
     }
+    */
+
+
+    public static async Task VerifyCustomerAccess(
+    IServiceProvider services,
+    string username,
+    string customerId,
+    ITestOutputHelper output)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        // Use a projection to avoid the SqlNullValueException 
+        // by handling nulls directly during the query
+        var access = await db.CustomerAccess
+            .Select(x => new {
+                x.Username,
+                x.CRMCustomerID
+                // Add any other properties here if needed
+            })
+            .FirstOrDefaultAsync(x => x.Username == username && x.CRMCustomerID == customerId);
+
+        output.WriteLine($"Looking for CustomerAccess: Username={username}, CustomerId={customerId}");
+
+        if (access == null)
+        {
+            output.WriteLine("CustomerAccess NOT FOUND");
+            throw new Exception("CustomerAccess record was not found in the database.");
+        }
+
+        output.WriteLine($"Found: {access.Username} -> {access.CRMCustomerID}");
+        Assert.NotNull(access);
+    }
+
+
+
+
 
     public static async Task AssignCustomerAccess(
     string crmCustomerId,

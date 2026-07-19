@@ -124,6 +124,12 @@ namespace DemoERPApi.Models
 
 
         /*
+        HTTP response status code for the API request that caused the change (if available).
+        */
+      //  public int? StatusCode { get; set; }
+
+
+        /*
         Date and time when the change occurred.
         */
         public DateTime ChangedDate { get; set; }

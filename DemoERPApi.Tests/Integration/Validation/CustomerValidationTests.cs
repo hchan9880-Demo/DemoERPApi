@@ -83,7 +83,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_002_UpdateMissingRequiredFields_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = null, // Required
@@ -114,7 +114,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_003_UpdateInvalidEmail_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",
@@ -145,7 +145,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_004_UpdateInvalidPhone_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",
@@ -205,7 +205,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_006_SyncMissingRequiredFields_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",
@@ -236,7 +236,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_007_SyncInvalidEmail_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",
@@ -267,7 +267,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_008_SyncInvalidPhone_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",
@@ -327,7 +327,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_010_CreateMissingRequiredFields_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = null, // Missing required ID key context
             FirstName = "Test",
@@ -358,7 +358,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_011_CreateInvalidEmail_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",
@@ -389,7 +389,7 @@ public class CustomerValidationTests : IClassFixture<WebApplicationFactory<Progr
     public async Task VALID_012_CreateInvalidPhone_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "Test",

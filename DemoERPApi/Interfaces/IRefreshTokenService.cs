@@ -1,5 +1,5 @@
 ﻿using DemoERPApi.Models;
-namespace DemoERPApi.Services;
+namespace DemoERPApi.Interfaces;
 
 public interface IRefreshTokenService
 {

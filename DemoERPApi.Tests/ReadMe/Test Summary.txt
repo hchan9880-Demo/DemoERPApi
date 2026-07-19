@@ -96,7 +96,7 @@ Tested Scenarios
 GET Customer – Success
 Test: GetCustomer_ReturnsOk_WhenCustomerExists
 Input: CRM100
-Expected: HTTP 200 OK with a valid CustomerDto
+Expected: HTTP 200 OK with a valid CustomersDto
 Purpose: Confirms successful retrieval of an existing customer from the database.
 GET Customer – Not Found
 Test: GetCustomer_ReturnsNotFound_WhenCustomerDoesNotExist

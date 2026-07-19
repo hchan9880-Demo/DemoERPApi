@@ -49,7 +49,7 @@ SyncLog
 HTTP 500 ProblemDetails Response
  
  */
-namespace DemoERPApi.Services
+namespace DemoERPApi.Interfaces
 {
     public interface ILoggingService
     {

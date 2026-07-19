@@ -12,6 +12,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Serilog;
 using Serilog.Events;
+using DemoERPApi.Interfaces;
 
 // 1. Configure the global logger
 Log.Logger = new LoggerConfiguration()
@@ -30,17 +31,31 @@ builder.Host.UseSerilog();
 // =====================================================================
 // 1. DATABASE CONFIGURATION
 // =====================================================================
-// Added connection retry logic (Task 8) to handle transient database failures.
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DemoERPConnection"),
-        sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorNumbersToAdd: null);
-        }));
+
+if (builder.Environment.IsEnvironment("Test"))
+{
+    // Integration Test Database
+    builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseInMemoryDatabase("DemoERPConnection");
+    });
+}
+else
+{
+    // Production / Development SQL Server Database
+    builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DemoERPConnection"),
+            sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+            });
+    });
+}
 
 // =====================================================================
 // 2. CONTROLLERS & VALIDATION
@@ -58,6 +73,9 @@ builder.Services.AddEndpointsApiExplorer();
 // Register FluentValidation (Task 6)
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CustomerValidator>();
+
+builder.Services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();
+builder.Services.AddScoped<IReportingService, ReportingService>();
 
 // =====================================================================
 // 3. APPLICATION SERVICES
@@ -154,10 +172,22 @@ if (app.Environment.IsDevelopment())
 }
 
 // Database Migration & Seeding
+// =====================================================
+// Database Initialization
+// =====================================================
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.Migrate();
+
+    if (context.Database.IsRelational())
+    {
+    //    context.Database.Migrate();
+    }
+    else
+    {
+        context.Database.EnsureCreated();
+    }
+
     DbSeeder.Seed(context);
 }
 

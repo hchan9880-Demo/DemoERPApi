@@ -113,7 +113,7 @@ public class AuditTests :
     $"AUDIT_TEST_001_{DateTime.UtcNow:yyyyMMddHHmmss}";
 
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = customerIdRandom,
             FirstName = "Audit",
@@ -127,7 +127,7 @@ public class AuditTests :
 
 
         /*
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "AUDIT_TEST_001a",
             FirstName = "Audit",
@@ -233,7 +233,7 @@ public class AuditTests :
 
         await Client.PostAsJsonAsync(
             "/api/Customer/sync",
-            new CustomerDto
+            new CustomersDto
             {
                 CRMCustomerID = "AUDIT_UPDATE_001",
                 FirstName = "Original",
@@ -244,7 +244,7 @@ public class AuditTests :
 
 
 
-        var update = new CustomerDto
+        var update = new CustomersDto
         {
             CRMCustomerID = "AUDIT_UPDATE_001",
             FirstName = "Updated",
@@ -331,7 +331,7 @@ public class AuditTests :
 
         await Client.PostAsJsonAsync(
             "/api/Customer/sync",
-            new CustomerDto
+            new CustomersDto
             {
                 CRMCustomerID = "AUDIT_DELETE_001",
                 FirstName = "Delete",

@@ -99,7 +99,7 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
         await CustomerSeedHelper.SeedCustomer(_client, OTHER_CUSTOMER_ID);
         TestAuthHelper.SetOwnerToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = OTHER_CUSTOMER_ID,
             FirstName = "Malicious",
@@ -173,7 +173,7 @@ public class CustomerRoleTests : IClassFixture<WebApplicationFactory<Program>>
 
         TestAuthHelper.SetOwnerToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = newCustomerId,
             FirstName = "Unauthorized",

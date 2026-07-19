@@ -57,7 +57,7 @@ namespace DemoERPApi.Tests.Integration
         {
             TestAuthHelper.SetValidToken(_client);
 
-            var request = new CustomerDto
+            var request = new CustomersDto
             {
                 CRMCustomerID = "TEST_INVALID_EMAIL",
                 FirstName = "Test",
@@ -81,7 +81,7 @@ namespace DemoERPApi.Tests.Integration
         {
             TestAuthHelper.SetValidToken(_client);
 
-            var customer = new CustomerDto
+            var customer = new CustomersDto
             {
                 CRMCustomerID = "CRM100",
                 FirstName = "John",

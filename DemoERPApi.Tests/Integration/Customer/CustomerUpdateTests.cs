@@ -66,7 +66,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
         TestAuthHelper.SetAdminToken(_client);
 
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             // trying to rename CRM100 to CRM101
             CRMCustomerID = "CRM101",
@@ -115,7 +115,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
         var testId = "CRM_UPD_004";
         await CustomerSeedHelper.SeedCustomer(_client, testId);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = testId,
             FirstName = "Michael",
@@ -146,7 +146,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.NonExistingCustomerID,
             FirstName = "Test",
@@ -182,7 +182,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
         var testId = "CRM_UPD_006";
         await CustomerSeedHelper.SeedCustomer(_client, testId);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = testId,
             FirstName = "QA",
@@ -214,7 +214,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetQAToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.NonExistingCustomerID,
             FirstName = "Missing",
@@ -244,7 +244,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetOwnerToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.NonExistingCustomerID,
             FirstName = "Ghost",
@@ -283,7 +283,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
         // Soft-delete the customer record first via api route template
         await _client.DeleteAsync($"/api/Customer/{testId}");
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = testId,
             FirstName = "Attempted",
@@ -322,7 +322,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetOwnerToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.OwnerCustomerID,
             FirstName = "Owner",
@@ -354,7 +354,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetOwnerToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.OtherCustomerID,
             FirstName = "Other",
@@ -386,7 +386,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = null,
             FirstName = "Michael",
@@ -418,7 +418,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = null,
@@ -450,7 +450,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",
@@ -482,7 +482,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",
@@ -501,7 +501,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",
@@ -533,7 +533,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",
@@ -561,7 +561,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.ClearToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",
@@ -591,7 +591,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetInvalidToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",

@@ -1,5 +1,6 @@
 ﻿using DemoERPApi.Data;
 using DemoERPApi.Exceptions;
+using DemoERPApi.Interfaces;
 using DemoERPApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,18 +11,21 @@ namespace DemoERPApi.Services
         private readonly AppDbContext _context;
         private readonly IAuditService _auditService;
         private readonly ILoggingService _loggingService;
+        private readonly IDuplicateDetectionService _duplicateDetectionService;
 
         public CustomerService(
             AppDbContext context,
             IAuditService auditService,
-            ILoggingService loggingService)
+            ILoggingService loggingService,
+            IDuplicateDetectionService duplicateDetectionService)
         {
             _context = context;
             _auditService = auditService;
             _loggingService = loggingService;
+            _duplicateDetectionService = duplicateDetectionService;
         }
 
-        public async Task<Customer> SyncCustomerAsync(CustomerDto dto, string userName)
+        public async Task<Customers> SyncCustomerAsync(CustomersDto dto, string userName)
         {
             if (string.IsNullOrWhiteSpace(dto.Email))
                 throw new ValidationException("Email is required");
@@ -32,7 +36,7 @@ namespace DemoERPApi.Services
             if (existing != null)
                 throw new BusinessException("CUSTOMER_DUPLICATE", "Customer already exists");
 
-            var customer = new Customer
+            var customer = new Customers
             {
                 CRMCustomerID = dto.CRMCustomerID,
                 FirstName = dto.FirstName,
@@ -69,14 +73,14 @@ namespace DemoERPApi.Services
         }
 
         // Fixed: Implemented as async Task
-        public async Task<IEnumerable<Customer>> GetCustomersAsync()
+        public async Task<IEnumerable<Customers>> GetCustomersAsync()
         {
             return await _context.Customers
                 .Where(c => !c.IsDeleted)
                 .ToListAsync();
         }
 
-        public async Task<Customer?> GetCustomerAsync(string crmCustomerId)
+        public async Task<Customers?> GetCustomerAsync(string crmCustomerId)
         {
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(x => x.CRMCustomerID == crmCustomerId && !x.IsDeleted);

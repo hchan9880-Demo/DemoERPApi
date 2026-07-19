@@ -55,7 +55,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         await _db.DeleteCustomer(TEST_ID_1);
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TEST_ID_1,
             FirstName = "John",
@@ -92,7 +92,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TestData.ExistingCustomerID,
             FirstName = "Michael",
@@ -133,7 +133,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         TestAuthHelper.SetQAToken(_client);
 
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = qaAssignedId,
             FirstName = "QA_Assigned",
@@ -171,7 +171,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetInvalidToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM402",
             FirstName = "Bad",
@@ -195,7 +195,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
 
         // 1. Establish a clean record, then soft-delete it via the endpoint
         await _db.DeleteCustomer(testId);
-        var setupPayload = new CustomerDto
+        var setupPayload = new CustomersDto
         {
             CRMCustomerID = testId,
             FirstName = "Initial",
@@ -207,7 +207,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         await _client.DeleteAsync($"/api/Customer/{testId}");
 
         // 2. Attempt to sync a duplicate payload against the soft-deleted row
-        var duplicatePayload = new CustomerDto
+        var duplicatePayload = new CustomersDto
         {
             CRMCustomerID = testId,
             FirstName = "Reactived",
@@ -232,7 +232,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         await _db.DeleteCustomer(TEST_ID_2);
         TestAuthHelper.SetOwnerToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = TEST_ID_2,
             FirstName = "Alice",
@@ -251,7 +251,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetUnauthorizedUserToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM400",
             FirstName = "Guest",
@@ -283,7 +283,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.ClearToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM401",
             FirstName = "No",
@@ -316,7 +316,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM405",
             FirstName = null,
@@ -350,7 +350,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM406",
             FirstName = "Test",
@@ -383,7 +383,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM403",
             FirstName = "Test",
@@ -416,7 +416,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM404",
             FirstName = "Test",
@@ -449,7 +449,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM409",
             FirstName = "Test",
@@ -502,7 +502,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     {
         TestAuthHelper.SetAdminToken(_client);
 
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = null,
             FirstName = "Test",

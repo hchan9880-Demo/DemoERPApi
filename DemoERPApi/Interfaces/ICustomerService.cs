@@ -1,18 +1,18 @@
 ﻿using DemoERPApi.Models;
 
-namespace DemoERPApi.Services
+namespace DemoERPApi.Interfaces
 {
     public interface ICustomerService
     {
-        Task<Customer> SyncCustomerAsync(
-            CustomerDto customer,
+        Task<Customers> SyncCustomerAsync(
+            CustomersDto customer,
             string userName);
 
-        Task<Customer?> GetCustomerAsync(
+        Task<Customers?> GetCustomerAsync(
             string crmCustomerId);
 
         // Fixed: Renamed to Async to match implementation
-        Task<IEnumerable<Customer>> GetCustomersAsync();
+        Task<IEnumerable<Customers>> GetCustomersAsync();
 
         Task<bool> DeleteCustomerAsync(
             string crmCustomerId);

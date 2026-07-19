@@ -1,6 +1,6 @@
 ﻿namespace DemoERPApi.Models;
 
-public class CustomerDto
+public class CustomersDto
 {
     public string CRMCustomerID { get; set; } = string.Empty;
 

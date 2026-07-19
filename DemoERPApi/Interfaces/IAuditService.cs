@@ -35,7 +35,7 @@ AuditLogs Table
 using System.Threading.Tasks;
 using DemoERPApi.Models;
 
-namespace DemoERPApi.Services
+namespace DemoERPApi.Interfaces
 {
     public interface IAuditService
     {

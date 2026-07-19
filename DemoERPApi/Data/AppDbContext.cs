@@ -1,7 +1,6 @@
 ﻿using DemoERPApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Win32;
 
 namespace DemoERPApi.Data;
 
@@ -12,232 +11,106 @@ public class AppDbContext : DbContext
     {
     }
 
+    public DbSet<Customers> Customers { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<CustomerAccess> CustomerAccess { get; set; } = null!;
+    public DbSet<SyncLogs> SyncLogs { get; set; } = null!;
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
-    public DbSet<Customer> Customers { get; set; }
-
-    public DbSet<User> Users { get; set; }
-
-    public DbSet<CustomerAccess> CustomerAccess { get; set; }
-
-    public DbSet<SyncLogs> SyncLogs { get; set; }
-
-    // Register AuditLogs DbSet
-    public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
-    protected override void OnConfiguring(
-        DbContextOptionsBuilder optionsBuilder)
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
-
-
-        // =====================================================
-        // Ignore EF Core pending model changes warning
-        //
-        // Reason:
-        // Existing DemoERP database already exists.
-        // Integration tests call Database.Migrate()
-        // during startup.
-        //
-        // Without this, WebApplicationFactory fails before
-        // executing API tests.
-        // =====================================================
-
-        optionsBuilder.ConfigureWarnings(
-            warnings =>
-            warnings.Ignore(
-                RelationalEventId.PendingModelChangesWarning));
+        optionsBuilder.ConfigureWarnings(warnings =>
+            warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
     }
 
-
-
-    protected override void OnModelCreating(
-        ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
-
         base.OnModelCreating(modelBuilder);
 
+        // --- USERS TABLE ---
 
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasKey(u => u.UserId);
+          //  entity.Property(u => u.Role).HasColumnName("Role"); // Explicit mapping
+          //  entity.Property(u => u.CustomerID).HasColumnName("CustomerID"); // Explicit mapping[cite: 10]
+        });
 
-        // =====================================================
-        // Customer
-        // =====================================================
-
-        modelBuilder.Entity<Customer>()
-            .HasKey(c => c.CRMCustomerID);
-
-
-
-        // =====================================================
-        // User
-        // =====================================================
-
-        modelBuilder.Entity<User>()
-            .HasIndex(u => u.Username)
-            .IsUnique();
-
-
-        modelBuilder.Entity<User>()
-            .HasOne<Customer>()
-            .WithMany()
-            .HasForeignKey(u => u.CustomerID)
-            .HasPrincipalKey(c => c.CRMCustomerID)
-            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Customers>(entity =>
+        {
+            entity.ToTable("Customers");
+            entity.HasKey(c => c.CustomerID);
+            // FORCE IGNORE: This stops EF Core from looking for 'Role' or 'CustomerID' string here[cite: 10]
+            entity.Ignore("Role");
+        });
 
 
 
-        // =====================================================
-        // CustomerAccess
-        // =====================================================
-
-        modelBuilder.Entity<CustomerAccess>()
-            .HasKey(ca => ca.Id);
 
 
+        // --- CUSTOMERACCESS TABLE ---
+        modelBuilder.Entity<CustomerAccess>(entity =>
+        {
+            entity.ToTable("CustomerAccess");
+            entity.HasKey(ca => ca.Id);
+            entity.Property(ca => ca.CRMCustomerID).HasColumnName("CRMCustomerID");
+            entity.Property(ca => ca.UserId).HasColumnName("UserId");
+          //    entity.Property(u => u.Role).HasColumnName("Role"); // Explicit mapping
+         //     entity.Property(u => u.CustomerID).HasColumnName("CustomerID"); // Explicit mapping[cite: 10]
+
+
+        });
 
         // =====================================================
-        // SyncLog
+        // SyncLogs
         // =====================================================
-        modelBuilder.Entity<SyncLogs>()
-.ToTable("SyncLogs");
-        modelBuilder.Entity<SyncLogs>()
-            .HasKey(x => x.LogId);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.LogId)
-            .ValueGeneratedOnAdd();
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.CRMCustomerID)
-            .HasColumnName("CRMCustomerID")
-            .HasMaxLength(100);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.Operation)
-            .HasColumnName("Operation")
-            .HasMaxLength(40);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.Status)
-            .HasColumnName("Status")
-            .HasMaxLength(40);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.Message)
-            .HasColumnName("Message")
-            .HasMaxLength(1000);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.Username)
-            .HasColumnName("Username")
-            .HasMaxLength(200);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.RequestId)
-            .HasColumnName("RequestId")
-            .HasMaxLength(200);
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.CreatedDate)
-            .HasColumnName("CreatedDate")
-            .HasColumnType("datetime2");
-
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.ExecutionTimeMs)
-            .HasColumnName("ExecutionTimeMs");
-
-
-        // =====================================================
-        // Optional:
-        // Match database column names
-        // =====================================================
-
-        modelBuilder.Entity<SyncLogs>()
-            .Property(x => x.CreatedDate)
-            .HasColumnType("datetime2");
-
-
-
-
+        modelBuilder.Entity<SyncLogs>(entity =>
+        {
+            entity.ToTable("SyncLogs");
+            entity.HasKey(x => x.LogId);
+            entity.Property(x => x.LogId).ValueGeneratedOnAdd();
+            entity.Property(x => x.Operation).HasMaxLength(40);
+            entity.Property(x => x.Status).HasMaxLength(40);
+            entity.Property(x => x.Message).HasMaxLength(1000);
+            entity.Property(x => x.Username).HasMaxLength(200);
+            entity.Property(x => x.RequestId).HasMaxLength(200);
+            entity.Property(x => x.CreatedDate).HasColumnType("datetime2");
+        });
 
         // =====================================================
         // AuditLogs
         // =====================================================
-
-
-
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.HasKey(e => e.AuditId);
-
             entity.ToTable("AuditLogs");
-
-            entity.Property(e => e.EntityName)
-                .HasMaxLength(100);
-
-            entity.Property(e => e.Action)
-                .HasMaxLength(50);
-
-            entity.Property(e => e.ChangedBy)
-                .HasMaxLength(100);
+            entity.HasKey(e => e.AuditId);
+            entity.Property(e => e.EntityName).HasMaxLength(100);
+            entity.Property(e => e.Action).HasMaxLength(50);
+            entity.Property(e => e.ChangedBy).HasMaxLength(100);
         });
 
-
         // =====================================================
-        // RefreshToken
+        // RefreshTokens
         // =====================================================
-
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.ToTable("RefreshTokens");
-
             entity.HasKey(e => e.TokenID);
-
-            entity.Property(e => e.TokenID)
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.Token)
-                .IsRequired()
-                .HasMaxLength(256);
-
-            entity.HasIndex(e => e.Token)
-                .IsUnique();
-
-            entity.Property(e => e.CreatedByIP)
-                .HasMaxLength(45);
-
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("datetime2");
-
-            entity.Property(e => e.ExpirationDate)
-                .HasColumnType("datetime2");
-
-            entity.Property(e => e.RevokedDate)
-                .HasColumnType("datetime2");
-
-            entity.Property(e => e.IsUsed)
-                .HasDefaultValue(false);
-
+            entity.Property(e => e.TokenID).ValueGeneratedOnAdd();
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(256);
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.Property(e => e.CreatedByIP).HasMaxLength(45);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime2");
+            entity.Property(e => e.ExpirationDate).HasColumnType("datetime2");
+            entity.Property(e => e.RevokedDate).HasColumnType("datetime2");
             entity.HasOne(rt => rt.User)
-                .WithMany()               // or .WithMany(u => u.RefreshTokens) if User has a collection
+                .WithMany()
                 .HasForeignKey(rt => rt.UserId)
                 .HasConstraintName("FK_RefreshTokens_Users")
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
-
-
-
-
-
     }
 }

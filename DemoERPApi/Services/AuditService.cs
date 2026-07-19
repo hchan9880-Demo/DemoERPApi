@@ -42,9 +42,9 @@ AuditLogs Table
 
 using DemoERPApi.Data;
 using DemoERPApi.Models;
-using DemoERPApi.Services;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using DemoERPApi.Interfaces;
 
 
 namespace DemoERPApi.Services

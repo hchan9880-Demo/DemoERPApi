@@ -50,7 +50,7 @@ public class QaRoleTests : IClassFixture<WebApplicationFactory<Program>>
         _client = factory.CreateClient();
     }
 
-    private static CustomerDto GetValidPayload(string crmId) => new()
+    private static CustomersDto GetValidPayload(string crmId) => new()
     {
         CRMCustomerID = crmId,
         FirstName = "Scoped",

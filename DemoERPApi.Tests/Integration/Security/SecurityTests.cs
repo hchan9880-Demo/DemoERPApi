@@ -57,7 +57,7 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         _client = factory.CreateClient();
     }
 
-    private static CustomerDto GetValidPayload(string customId = TARGET_ID) => new()
+    private static CustomersDto GetValidPayload(string customId = TARGET_ID) => new()
     {
         CRMCustomerID = customId,
         FirstName = "Security",
@@ -294,7 +294,7 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task SEC_012_CustomerApis_SqlInjectionOrXssPayload_ReturnsBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var maliciousPayload = new CustomerDto
+        var maliciousPayload = new CustomersDto
         {
             CRMCustomerID = TARGET_ID,
             FirstName = "<script>alert('xss')</script>",
@@ -430,7 +430,7 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
 
 
         var returnedCustomer =
-            await response.Content.ReadFromJsonAsync<CustomerDto>();
+            await response.Content.ReadFromJsonAsync<CustomersDto>();
 
 
         Assert.NotNull(returnedCustomer);
@@ -561,7 +561,7 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
 
         var verifiedCustomer =
             await verifyResponse.Content
-                .ReadFromJsonAsync<CustomerDto>();
+                .ReadFromJsonAsync<CustomersDto>();
 
 
 

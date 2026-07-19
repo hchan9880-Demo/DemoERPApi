@@ -53,7 +53,7 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync($"/api/Customer/{testId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var customer = await response.Content.ReadFromJsonAsync<CustomerDto>();
+        var customer = await response.Content.ReadFromJsonAsync<CustomersDto>();
         Assert.NotNull(customer);
         Assert.Equal(testId, customer!.CRMCustomerID);
     }
@@ -130,7 +130,7 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync($"/api/Customer/{testId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var customer = await response.Content.ReadFromJsonAsync<CustomerDto>();
+        var customer = await response.Content.ReadFromJsonAsync<CustomersDto>();
         Assert.NotNull(customer);
         Assert.Equal(testId, customer!.CRMCustomerID);
     }

@@ -40,7 +40,7 @@ public class CustomerControllerTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var customer =
-            await response.Content.ReadFromJsonAsync<CustomerDto>();
+            await response.Content.ReadFromJsonAsync<CustomersDto>();
 
         Assert.NotNull(customer);
         Assert.Equal("CRM100", customer!.CRMCustomerID);
@@ -83,7 +83,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsOk_WhenCrmExists()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM100",
             FirstName = "Michael",
@@ -119,7 +119,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsNotFound_WhenCrmDoesNotExist()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "",
             FirstName = "Test",
@@ -146,7 +146,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenCrmIsNull()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = null,
             FirstName = "Test",
@@ -175,7 +175,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsOk_WhenCrmExists()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM102",
             FirstName = "Michael",
@@ -202,7 +202,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsNotFound_WhenCrmDoesNotExist()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM999999",
             FirstName = "Test",
@@ -229,7 +229,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenCrmIsNull()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = null,
             FirstName = "Test",
@@ -404,7 +404,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsOk_WhenEmailAndPhoneAreValid()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM200",
             FirstName = "Michael",
@@ -431,7 +431,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenEmailIsNull()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM201",
             FirstName = "Michael",
@@ -458,7 +458,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM202",
             FirstName = "Michael",
@@ -485,7 +485,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsOk_WhenPhoneIsNull()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM203",
             FirstName = "Michael",
@@ -516,7 +516,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task SyncCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM204",
             FirstName = "Michael",
@@ -550,7 +550,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsOk_WhenEmailAndPhoneAreValid()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {   CRMCustomerID = "CRM100",
             FirstName = "Michael",
             LastName = "Johnson",
@@ -576,7 +576,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailIsNull()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM100",
             FirstName = "Michael",
@@ -603,7 +603,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM100",
             FirstName = "Michael",
@@ -630,7 +630,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsOk_WhenPhoneIsNull()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM100",
             FirstName = "Michael",
@@ -657,7 +657,7 @@ public class CustomerControllerTests
     [Fact]
     public async Task UpdateCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
     {
-        var request = new CustomerDto
+        var request = new CustomersDto
         {
             CRMCustomerID = "CRM100",
             FirstName = "Michael",

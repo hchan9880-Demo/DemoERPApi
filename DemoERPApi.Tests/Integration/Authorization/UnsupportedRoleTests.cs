@@ -67,7 +67,7 @@ public class UnsupportedRoleTests : IClassFixture<WebApplicationFactory<Program>
         _client = factory.CreateClient();
     }
 
-    private static CustomerDto GetValidPayload() => new()
+    private static CustomersDto GetValidPayload() => new()
     {
         CRMCustomerID = TARGET_ID,
         FirstName = "Security",

@@ -245,3 +245,23 @@ GO
 
 PRINT 'DemoERPApi v1.0 database schema created successfully.';
 GO
+
+
+
+
+CREATE TABLE DataQualityScores
+(
+    Id INT IDENTITY PRIMARY KEY,
+
+    CRMCustomerID VARCHAR(50),
+
+    Score INT,
+
+    MissingFields INT,
+
+    ValidationErrors INT,
+
+    CheckedDate DATETIME,
+
+    RequestId VARCHAR(100)
+)
