@@ -1,4 +1,5 @@
 ﻿using DemoERPApi.Models;
+using DemoERPApi.Services;
 using DemoERPApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration.UserSecrets;
@@ -465,72 +466,24 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var testId = "SEC_OWN_015";
 
-
-        //
-        // Step 1:
-        // Use Admin role to create customer
-        //
+        // 1. Setup Data as Admin
         TestAuthHelper.SetAdminToken(_client);
+        await CustomerSeedHelper.SeedCustomer(_client, testId, _output);
+        await CustomerSeedHelper.AssignCustomerAccess(testId, "owner1", _output);
 
-
-        await CustomerSeedHelper.SeedCustomer(
-            _client,
-            testId,
-            _output);
-
-
-
-        //
-        // Step 2:
-        // Assign ownership:
-        //
-        // CustomerAccess:
-        // SEC_OWN_015 -> owner1
-        //
-        await CustomerSeedHelper.AssignCustomerAccess(
-            testId,
-            "owner1",
-            _output);
-
-
-
-        //
-        // Step 3:
-        // Verify ownership exists
-        //
-        await CustomerSeedHelper.VerifyCustomerAccess(
-            _factory.Services,
-            "owner1",
-            testId,
-            _output);
-
-
-
-        //
-        // Step 4:
-        // Switch JWT identity to customer owner
-        //
+        // 2. Switch to Owner and Update
         TestAuthHelper.SetOwnerToken(_client);
-
-
-        DebugCurrentToken();
-
-
-
-        //
-        // Step 5:
-        // Customer updates own profile
-        //
         var updatePayload = GetValidPayload(testId);
-
         updatePayload.FirstName = "SecurityUpdated";
 
+        var response = await _client.PutAsJsonAsync($"/api/Customer/{testId}", updatePayload);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var response =
-            await _client.PutAsJsonAsync(
-                $"/api/Customer/{testId}",
-                updatePayload);
+        // 3. Verify Persistence
+        var verifyResponse = await _client.GetAsync($"/api/Customer/{testId}");
+        var verifiedCustomer = await verifyResponse.Content.ReadFromJsonAsync<CustomerDto>();
 
+<<<<<<< HEAD
 
 
         //
@@ -577,7 +530,20 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(
             "SecurityUpdated",
             verifiedCustomer.FirstName);
+=======
+        Assert.Equal("SecurityUpdated", verifiedCustomer?.FirstName);
+>>>>>>> ecb4a12b112e8c49d6189c46fbfce9a8e56e2138
     }
+
+
+
+
+
+
+
+
+
+
 
 
     private void DebugCurrentToken()

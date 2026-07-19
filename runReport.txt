@@ -15,7 +15,29 @@ dotnet test --logger "trx;LogFileName=test_results.trx"
 C:\Users\KingBoo\source\repos\DemoERPApi
 PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtmlBoth.ps1
 
+<<<<<<< HEAD
 
 "C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi.Tests\TestResults\test_results.trx"
 
 "C:\Users\KingBoo\source\repos\DemoERPApi\DemoERPApi\TestResults\test_results.trx"
+=======
+PowerShell -ExecutionPolicy Bypass -File .\GenerateReportHtmlBoth.ps1
+
+
+dotnet test -- --logger "trx;LogFileName=test_results.trx"
+
+# Check if this command actually produces a file
+dotnet test --logger "trx;LogFileName=test_results.trx"
+
+# Then verify where it landed
+Get-ChildItem -Recurse -Filter "test_results.trx"
+
+dotnet test --logger "trx;LogFilePrefix=test_results"
+
+# Use single quotes to protect the semicolon
+dotnet test '--logger:trx;LogFileName=test_results.trx'
+
+dotnet test --logger "trx;LogFileName=test_results.trx" --diag:log.txt
+
+
+>>>>>>> ecb4a12b112e8c49d6189c46fbfce9a8e56e2138

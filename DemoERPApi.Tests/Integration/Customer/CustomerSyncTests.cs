@@ -2,6 +2,7 @@
 using DemoERPApi.Tests.Fixtures;
 using DemoERPApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -218,9 +219,22 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
 
         var response = await _client.PostAsJsonAsync("/api/Customer/sync", duplicatePayload);
 
-        // Depending on API spec, this usually resolves to OK (restores/un-deletes) or Conflict.
-        // Adjust the expected assertion value according to your exact business specifications.
-        Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Conflict);
+        /*
+            Depending on API spec, this usually resolves to OK (restores/un-deletes) or Conflict.response.StatusCode == HttpStatusCode.OK ||
+            Accept either OK (reactivated) or Conflict depending on business rules
+            HttpStatusCode.OK || HttpStatusCode.Conflict
+     
+        Console.WriteLine("=====================================================");
+        Console.WriteLine("SYNC_015_SyncDuplicateAgainstSoftDeletedCustomer_HandlesCorrectly");
+        Console.WriteLine($"Response Status: {response.StatusCode}");
+        Console.WriteLine($"Status Code (int): {(int)response.StatusCode}");
+        Console.WriteLine("SYNC_015_SyncDuplicateAgainstSoftDeletedCustomer_HandlesCorrectly");
+        Console.WriteLine("=====================================================");
+        */
+
+        Assert.True(response.StatusCode == HttpStatusCode.Conflict); // stated in the synccustomer
+        // Assert.True(response.StatusCode == HttpStatusCode.InternalServerError); //Global exception handling might return 500 if not handled properly in the API. Adjust based on your API's behavior.
+
     }
 
     // =====================================================
