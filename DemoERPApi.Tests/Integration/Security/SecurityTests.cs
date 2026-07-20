@@ -481,9 +481,7 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
 
         // 3. Verify Persistence
         var verifyResponse = await _client.GetAsync($"/api/Customer/{testId}");
-        var verifiedCustomer = await verifyResponse.Content.ReadFromJsonAsync<CustomerDto>();
-
-<<<<<<< HEAD
+        var verifiedCustomer = await verifyResponse.Content.ReadFromJsonAsync<CustomersDto>();
 
 
         //
@@ -496,25 +494,12 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
 
 
 
-        //
-        // Step 7:
-        // Verify persisted data
-        //
-        var verifyResponse =
-            await _client.GetAsync(
-                $"/api/Customer/{testId}");
-
 
 
         Assert.Equal(
             HttpStatusCode.OK,
             verifyResponse.StatusCode);
 
-
-
-        var verifiedCustomer =
-            await verifyResponse.Content
-                .ReadFromJsonAsync<CustomersDto>();
 
 
 
@@ -530,9 +515,9 @@ public class SecurityTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(
             "SecurityUpdated",
             verifiedCustomer.FirstName);
-=======
+
         Assert.Equal("SecurityUpdated", verifiedCustomer?.FirstName);
->>>>>>> ecb4a12b112e8c49d6189c46fbfce9a8e56e2138
+
     }
 
 

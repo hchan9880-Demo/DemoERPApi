@@ -223,15 +223,15 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
             Depending on API spec, this usually resolves to OK (restores/un-deletes) or Conflict.response.StatusCode == HttpStatusCode.OK ||
             Accept either OK (reactivated) or Conflict depending on business rules
             HttpStatusCode.OK || HttpStatusCode.Conflict
-     
+   
         Console.WriteLine("=====================================================");
         Console.WriteLine("SYNC_015_SyncDuplicateAgainstSoftDeletedCustomer_HandlesCorrectly");
         Console.WriteLine($"Response Status: {response.StatusCode}");
         Console.WriteLine($"Status Code (int): {(int)response.StatusCode}");
         Console.WriteLine("SYNC_015_SyncDuplicateAgainstSoftDeletedCustomer_HandlesCorrectly");
         Console.WriteLine("=====================================================");
-        */
-
+   
+       */
         Assert.True(response.StatusCode == HttpStatusCode.Conflict); // stated in the synccustomer
         // Assert.True(response.StatusCode == HttpStatusCode.InternalServerError); //Global exception handling might return 500 if not handled properly in the API. Adjust based on your API's behavior.
 
