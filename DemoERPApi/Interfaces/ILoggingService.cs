@@ -49,18 +49,22 @@ SyncLog
 HTTP 500 ProblemDetails Response
  
  */
-namespace DemoERPApi.Interfaces
-{
-    public interface ILoggingService
-    {
-        Task LogAsync(
-            string crmCustomerId,
-            string operation,
-            string status,
-            string message,
-            string? username,
-            string? requestId,
-            int executionTimeMs);
-    }
+namespace DemoERPApi.Interfaces;
 
+
+/// Interface for logging synchronization operations.
+
+public interface ILoggingService
+{
+    
+    /// Logs a synchronization operation with details.
+    
+    Task LogAsync(
+        string crmCustomerId,
+        string operation,
+        string status,
+        string message,
+        string? username,
+        string? requestId,
+        int executionTimeMs);
 }

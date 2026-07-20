@@ -1,14 +1,13 @@
-﻿namespace DemoERPApi.Models
+﻿namespace DemoERPApi.Models;
+
+
+/// Generic API response wrapper for consistent responses.
+
+/// <typeparam name="T">Type of data payload.</typeparam>
+public class ApiResponse<T>
 {
-    public class ApiResponse<T>
-    {
-        public bool Success { get; set; }
-
-        public string Message { get; set; }
-
-        public T Data { get; set; }
-
-        public string TraceId { get; set; }
-    }
-
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public T? Data { get; set; }
+    public string? TraceId { get; set; }
 }

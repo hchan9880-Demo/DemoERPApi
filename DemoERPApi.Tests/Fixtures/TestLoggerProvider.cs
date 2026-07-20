@@ -4,9 +4,9 @@ using System.Collections.Concurrent;
 
 namespace DemoERPApi.Tests.Fixtures
 {
-    /// <summary>
+    
     /// Test logger provider that stores all log entries in memory.
-    /// </summary>
+    
     public class TestLoggerProvider : ILoggerProvider
     {
         public ConcurrentBag<LogEntry> Logs { get; } = new();

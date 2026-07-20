@@ -40,6 +40,8 @@ AuditLogs Table
 
 
 
+/// Audit service for logging CREATE, UPDATE, DELETE operations.
+
 using DemoERPApi.Data;
 using DemoERPApi.Models;
 using System.Text.Json;
@@ -83,6 +85,11 @@ namespace DemoERPApi.Services
 
  ===============================================================================
  */
+
+
+        
+        /// Logs a CREATE operation.
+        
         public async Task LogCreateAsync<T>(
             string entityName,
             string entityId,
@@ -117,6 +124,10 @@ namespace DemoERPApi.Services
             Updated customer data
         ===========================================================================
         */
+
+        
+        /// Logs an UPDATE operation with old and new values.
+        
         public async Task LogUpdateAsync<T>(
             string entityName,
             string entityId,
@@ -152,6 +163,10 @@ namespace DemoERPApi.Services
             null
         ===========================================================================
         */
+
+        
+        /// Logs a DELETE operation.
+        
         public async Task LogDeleteAsync<T>(
             string entityName,
             string entityId,
@@ -192,6 +207,11 @@ namespace DemoERPApi.Services
 
         ===========================================================================
         */
+
+        
+        /// Generic audit logger with JSON serialization.
+        
+
         public async Task LogAsync(
             string entityName,
             string entityId,
@@ -201,39 +221,21 @@ namespace DemoERPApi.Services
             string changedBy,
             string? requestId)
         {
-
-            var auditLog = new AuditLog
+            var auditLogs = new AuditLogs
             {
                 EntityName = entityName,
-
                 EntityId = entityId,
-
                 Action = action,
-
-
-                OldValues = oldValues == null
-                    ? null
-                    : JsonSerializer.Serialize(oldValues),
-
-
-                NewValues = newValues == null
-                    ? null
-                    : JsonSerializer.Serialize(newValues),
-
-
+                OldValues = oldValues == null ? null : JsonSerializer.Serialize(oldValues),
+                NewValues = newValues == null ? null : JsonSerializer.Serialize(newValues),
                 ChangedBy = changedBy,
-
                 RequestId = requestId,
-
                 ChangedDate = DateTime.UtcNow
             };
 
-
-            await _context.AuditLogs.AddAsync(auditLog);
-
+            await _context.AuditLogs.AddAsync(auditLogs);
             await _context.SaveChangesAsync();
-
-            Console.WriteLine("Audit saved.");
         }
+
     }
 }

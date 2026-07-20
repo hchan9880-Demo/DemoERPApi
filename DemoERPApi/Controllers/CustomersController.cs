@@ -16,10 +16,10 @@ using System.Text.RegularExpressions;
 
 namespace DemoERPApi.Controllers;
 
-/// <summary>
+
 /// Controller for managing customer operations including CRUD operations,
 /// synchronization, and access control.
-/// </summary>
+
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -31,9 +31,9 @@ public class CustomerController : ControllerBase
     private readonly ICustomerService _customerService;
     private readonly string _connectionString;
 
-    /// <summary>
+    
     /// Initializes a new instance of the <see cref="CustomerController"/> class.
-    /// </summary>
+    
     /// <param name="context">Database context</param>
     /// <param name="logger">Logger instance</param>
     /// <param name="configuration">Configuration for connection strings</param>
@@ -55,9 +55,9 @@ public class CustomerController : ControllerBase
 
     #region Validation Helpers
 
-    /// <summary>
+    
     /// Validates email format using regex pattern.
-    /// </summary>
+    
     /// <param name="email">Email address to validate</param>
     /// <returns>True if email format is valid</returns>
     private bool IsValidEmail(string email)
@@ -66,9 +66,9 @@ public class CustomerController : ControllerBase
             && Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     }
 
-    /// <summary>
+    
     /// Validates phone number format (exactly 10 digits).
-    /// </summary>
+    
     /// <param name="phone">Phone number to validate</param>
     /// <returns>True if phone format is valid</returns>
     private bool IsValidPhone(string phone)
@@ -77,9 +77,9 @@ public class CustomerController : ControllerBase
             && Regex.IsMatch(phone, @"^\d{10}$");
     }
 
-    /// <summary>
+    
     /// Checks for common security payloads (XSS, SQL injection patterns).
-    /// </summary>
+    
     /// <param name="input">Input string to check</param>
     /// <returns>True if malicious content detected</returns>
     private bool ContainsSecurityPayload(string? input)
@@ -94,9 +94,9 @@ public class CustomerController : ControllerBase
             || value.Contains("or 1=1");
     }
 
-    /// <summary>
+    
     /// Checks for malicious content patterns including XSS and SQL injection.
-    /// </summary>
+    
     /// <param name="input">Input string to check</param>
     /// <returns>True if malicious content detected</returns>
     private bool ContainsMaliciousContent(string input)
@@ -109,9 +109,9 @@ public class CustomerController : ControllerBase
             input.Contains(pattern, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>
+    
     /// Validates if the current user has a valid role (Admin, QA, or Customer).
-    /// </summary>
+    
     /// <returns>True if user has a valid role</returns>
     private bool HasValidRole()
     {
@@ -125,9 +125,9 @@ public class CustomerController : ControllerBase
 
     #region User Context Helpers
 
-    /// <summary>
+    
     /// Extracts the current username from the JWT token claims.
-    /// </summary>
+    
     /// <returns>Username or "Unknown" if not found</returns>
     private string GetCurrentUser()
     {
@@ -139,9 +139,9 @@ public class CustomerController : ControllerBase
             ?? "Unknown";
     }
 
-    /// <summary>
+    
     /// Extracts the current user's role from the JWT token claims.
-    /// </summary>
+    
     /// <returns>Role or null if not found</returns>
     private string? GetRole()
     {
@@ -155,10 +155,10 @@ public class CustomerController : ControllerBase
 
     #region Authorization Helpers
 
-    /// <summary>
+    
     /// Checks if the current user has access to a specific customer.
     /// Uses the CustomerAccess table for authorization.
-    /// </summary>
+    
     /// <param name="crmId">Customer CRM ID</param>
     /// <returns>True if user has access</returns>
     private bool CanAccessCustomer(string crmId)
@@ -209,9 +209,9 @@ public class CustomerController : ControllerBase
 
     #region GET Endpoints
 
-    /// <summary>
+    
     /// Retrieves a specific customer by ID.
-    /// </summary>
+    
     /// <param name="customerId">Customer CRM ID</param>
     /// <returns>Customer details or appropriate error response</returns>
     [HttpGet("{customerId}")]
@@ -284,10 +284,10 @@ public class CustomerController : ControllerBase
         });
     }
 
-    /// <summary>
+    
     /// Handles base route without ID - returns 404 to prevent confusion.
     /// This prevents non-admin users from accidentally triggering the admin-only list endpoint.
-    /// </summary>
+    
     [HttpGet]
     [Authorize]
     public IActionResult HandleBaseCustomerRoute()
@@ -295,9 +295,9 @@ public class CustomerController : ControllerBase
         return NotFound("Customer ID not provided");
     }
 
-    /// <summary>
+    
     /// Retrieves all customers (Admin only).
-    /// </summary>
+    
     /// <returns>List of all customers</returns>
     [HttpGet("list")]
     [Authorize(Roles = "Admin")]
@@ -316,10 +316,10 @@ public class CustomerController : ControllerBase
 
     #region POST Endpoints
 
-    /// <summary>
+    
     /// Syncs a customer from an external system.
     /// Creates new customer or restores soft-deleted customer.
-    /// </summary>
+    
     /// <param name="customer">Customer data to sync</param>
     /// <returns>Success or appropriate error response</returns>
     [HttpPost("sync")]
@@ -477,18 +477,18 @@ public class CustomerController : ControllerBase
 
     #region PUT Endpoints
 
-    /// <summary>
+    
     /// Handles missing ID for PUT requests - returns 404.
-    /// </summary>
+    
     [HttpPut]
     public IActionResult HandleMissingId()
     {
         return NotFound("Customer ID not provided");
     }
 
-    /// <summary>
+    
     /// Updates an existing customer.
-    /// </summary>
+    
     /// <param name="customerId">Customer CRM ID to update</param>
     /// <param name="customer">Updated customer data</param>
     /// <returns>Updated customer or appropriate error response</returns>
@@ -637,9 +637,9 @@ public class CustomerController : ControllerBase
 
     #region DELETE Endpoints
 
-    /// <summary>
+    
     /// Soft-deletes a customer.
-    /// </summary>
+    
     /// <param name="customerId">Customer CRM ID to delete</param>
     /// <returns>Success or appropriate error response</returns>
     [HttpDelete("{customerId}")]
@@ -744,9 +744,9 @@ public class CustomerController : ControllerBase
 
     #region Debug Endpoints
 
-    /// <summary>
+    
     /// Debug endpoint to list all customer IDs.
-    /// </summary>
+    
     [AllowAnonymous]
     [HttpGet("debug/customers/list")]
     public IActionResult DebugCustomers()
@@ -766,9 +766,9 @@ public class CustomerController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
+    
     /// Debug endpoint to list all customer access entries.
-    /// </summary>
+    
     [AllowAnonymous]
     [HttpGet("debug/access")]
     public IActionResult DebugAccess()
@@ -793,9 +793,9 @@ public class CustomerController : ControllerBase
         return Ok(list);
     }
 
-    /// <summary>
+    
     /// Debug endpoint to display current user claims.
-    /// </summary>
+    
     [Authorize]
     [HttpGet("debug/whoami")]
     public IActionResult WhoAmI()
@@ -812,9 +812,9 @@ public class CustomerController : ControllerBase
 
     #region Helper Methods
 
-    /// <summary>
+    
     /// Creates a JWT token for testing purposes.
-    /// </summary>
+    
     private static string CreateJwtToken(string username, string? role, string crmId)
     {
         var claims = new List<Claim>
@@ -840,9 +840,9 @@ public class CustomerController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    /// <summary>
+    
     /// Writes a synchronization log entry.
-    /// </summary>
+    
     private void WriteSyncLog(string crmCustomerID, string operation, string status, string message, string username)
     {
         try

@@ -1,42 +1,41 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Threading.Tasks;
 
-namespace DemoERPApi.Middleware
+namespace DemoERPApi.Middleware;
+
+
+/// Middleware that generates or forwards a unique request ID for tracking.
+
+public class RequestIdMiddleware
 {
-    public class RequestIdMiddleware
+    public const string HeaderName = "X-Request-ID";
+
+    private readonly RequestDelegate _next;
+
+    public RequestIdMiddleware(RequestDelegate next)
     {
-        public const string HeaderName = "X-Request-ID";
+        _next = next;
+    }
 
-        private readonly RequestDelegate _next;
-
-        public RequestIdMiddleware(RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context)
+    {
+        // Reuse incoming request ID or generate new one
+        string requestId;
+        if (context.Request.Headers.TryGetValue(HeaderName, out var existingId) &&
+            !string.IsNullOrWhiteSpace(existingId))
         {
-            _next = next;
+            requestId = existingId.ToString();
+        }
+        else
+        {
+            requestId = Guid.NewGuid().ToString();
         }
 
-        public async Task InvokeAsync(HttpContext context)
-        {
-            string requestId;
+        // Store for request lifetime
+        context.Items["RequestId"] = requestId;
 
-            // Reuse an incoming Request ID if one was supplied
-            if (context.Request.Headers.TryGetValue(HeaderName, out var existingId)
-                && !string.IsNullOrWhiteSpace(existingId))
-            {
-                requestId = existingId.ToString();
-            }
-            else
-            {
-                requestId = Guid.NewGuid().ToString();
-            }
+        // Return to caller
+        context.Response.Headers[HeaderName] = requestId;
 
-            // Store for the lifetime of the request
-            context.Items["RequestId"] = requestId;
-
-            // Return it to the caller
-            context.Response.Headers[HeaderName] = requestId;
-
-            await _next(context);
-        }
+        await _next(context);
     }
 }

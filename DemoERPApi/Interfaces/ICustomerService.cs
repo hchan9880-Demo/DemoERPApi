@@ -1,20 +1,29 @@
 ﻿using DemoERPApi.Models;
 
-namespace DemoERPApi.Interfaces
+namespace DemoERPApi.Interfaces;
+
+
+/// Interface for customer CRUD and sync operations.
+
+public interface ICustomerService
 {
-    public interface ICustomerService
-    {
-        Task<Customers> SyncCustomerAsync(
-            CustomersDto customer,
-            string userName);
+    
+    /// Syncs a customer from external system with audit and sync logging.
+    
+    Task<Customers> SyncCustomerAsync(CustomersDto customer, string userName);
 
-        Task<Customers?> GetCustomerAsync(
-            string crmCustomerId);
+    
+    /// Retrieves an active customer by CRM ID.
+    
+    Task<Customers?> GetCustomerAsync(string crmCustomerId);
 
-        // Fixed: Renamed to Async to match implementation
-        Task<IEnumerable<Customers>> GetCustomersAsync();
+    
+    /// Retrieves all active (non-deleted) customers.
+    
+    Task<IEnumerable<Customers>> GetCustomersAsync();
 
-        Task<bool> DeleteCustomerAsync(
-            string crmCustomerId);
-    }
+    
+    /// Soft-deletes a customer by CRM ID.
+    
+    Task<bool> DeleteCustomerAsync(string crmCustomerId);
 }

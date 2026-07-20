@@ -1,15 +1,29 @@
 ﻿using DemoERPApi.Models;
 
-namespace DemoERPApi.Interfaces
+namespace DemoERPApi.Interfaces;
+
+
+/// Interface for duplicate customer detection (CRM ID, Email).
+
+public interface IDuplicateDetectionService
 {
-    public interface IDuplicateDetectionService
-    {
-        Task<bool> IsDuplicateCustomerIdAsync(string crmCustomerId);
+    
+    /// Checks if a CRM Customer ID already exists.
+    
+    Task<bool> IsDuplicateCustomerIdAsync(string crmCustomerId);
 
-        Task<bool> IsDuplicateEmailAsync(string email);
+    
+    /// Checks if an email is already in use.
+    
+    Task<bool> IsDuplicateEmailAsync(string email);
 
-        Task<bool> HasDuplicateAsync(Customers customer);
+    
+    /// Checks if either CRM ID or Email is a duplicate.
+    
+    Task<bool> HasDuplicateAsync(Customers customer);
 
-        Task<string?> GetDuplicateReasonAsync(Customers customer);
-    }
+    
+    /// Returns a descriptive duplicate reason message.
+    
+    Task<string?> GetDuplicateReasonAsync(Customers customer);
 }

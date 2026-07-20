@@ -1,21 +1,44 @@
 ﻿using DemoERPApi.Models;
 
-namespace DemoERPApi.Interfaces
+namespace DemoERPApi.Interfaces;
+
+
+/// Interface for reporting and analytics operations.
+
+public interface IReportingService
 {
-    public interface IReportingService
-    {
-        Task<CustomerSummaryReportDto> GetCustomerSummaryAsync();
+    
+    /// Returns total, active, and deleted customer counts.
+    
+    Task<CustomerSummaryReportDto> GetCustomerSummaryAsync();
 
-        Task<List<SyncReportDto>> GetRecentSyncsAsync(int days);
+    
+    /// Returns recent sync logs for the specified number of days.
+    
+    Task<List<SyncReportDto>> GetRecentSyncsAsync(int days);
 
-        Task<List<Customers>> GetDeletedCustomersAsync();
+    
+    /// Returns all soft-deleted customers.
+    
+    Task<List<Customers>> GetDeletedCustomersAsync();
 
-        Task<List<DuplicateCustomersDto>> GetDuplicateCustomersAsync();
+    
+    /// Returns duplicate customers by email (active only).
+    
+    Task<List<DuplicateCustomersDto>> GetDuplicateCustomersAsync();
 
-        Task<DataQualityReportDto> GetDataQualityReportAsync();
+    
+    /// Returns counts of customers with missing required fields.
+    
+    Task<DataQualityReportDto> GetDataQualityReportAsync();
 
-        Task<ApiUsageReportDto> GetApiUsageStatisticsAsync();
+    
+    /// Returns API usage statistics from audit logs.
+    
+    Task<ApiUsageReportDto> GetApiUsageStatisticsAsync();
 
-        Task<SystemHealthReportDto> GetSystemHealthAsync();
-    }
+    
+    /// Returns system health including database connectivity.
+    
+    Task<SystemHealthReportDto> GetSystemHealthAsync();
 }

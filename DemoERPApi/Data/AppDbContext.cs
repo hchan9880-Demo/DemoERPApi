@@ -4,18 +4,18 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DemoERPApi.Data;
 
+
+/// Entity Framework Core database context for the ERP application.
+
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Customers> Customers { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<CustomerAccess> CustomerAccess { get; set; } = null!;
     public DbSet<SyncLogs> SyncLogs { get; set; } = null!;
-    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+    public DbSet<AuditLogs> AuditLogs { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -29,44 +29,31 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // --- USERS TABLE ---
-
+        // Users
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Users");
             entity.HasKey(u => u.UserId);
-          //  entity.Property(u => u.Role).HasColumnName("Role"); // Explicit mapping
-          //  entity.Property(u => u.CustomerID).HasColumnName("CustomerID"); // Explicit mapping[cite: 10]
         });
 
+        // Customers
         modelBuilder.Entity<Customers>(entity =>
         {
             entity.ToTable("Customers");
             entity.HasKey(c => c.CustomerID);
-            // FORCE IGNORE: This stops EF Core from looking for 'Role' or 'CustomerID' string here[cite: 10]
-            entity.Ignore("Role");
+            entity.Ignore("Role"); // Prevent EF from mapping Role property
         });
 
-
-
-
-
-        // --- CUSTOMERACCESS TABLE ---
+        // CustomerAccess
         modelBuilder.Entity<CustomerAccess>(entity =>
         {
             entity.ToTable("CustomerAccess");
             entity.HasKey(ca => ca.Id);
             entity.Property(ca => ca.CRMCustomerID).HasColumnName("CRMCustomerID");
             entity.Property(ca => ca.UserId).HasColumnName("UserId");
-          //    entity.Property(u => u.Role).HasColumnName("Role"); // Explicit mapping
-         //     entity.Property(u => u.CustomerID).HasColumnName("CustomerID"); // Explicit mapping[cite: 10]
-
-
         });
 
-        // =====================================================
         // SyncLogs
-        // =====================================================
         modelBuilder.Entity<SyncLogs>(entity =>
         {
             entity.ToTable("SyncLogs");
@@ -80,10 +67,8 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CreatedDate).HasColumnType("datetime2");
         });
 
-        // =====================================================
         // AuditLogs
-        // =====================================================
-        modelBuilder.Entity<AuditLog>(entity =>
+        modelBuilder.Entity<AuditLogs>(entity =>
         {
             entity.ToTable("AuditLogs");
             entity.HasKey(e => e.AuditId);
@@ -92,9 +77,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.ChangedBy).HasMaxLength(100);
         });
 
-        // =====================================================
         // RefreshTokens
-        // =====================================================
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.ToTable("RefreshTokens");
