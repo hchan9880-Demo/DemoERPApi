@@ -44,7 +44,7 @@ public class ReportsControllerTests : IClassFixture<TestApplicationFactory>
     /// - The endpoint is properly configured and responsive
     
     [Fact]
-    public async Task CustomerSummary_WithAdminToken_ReturnsOk()
+    public async Task REP003_CustomerSummary_WithAdminToken_ReturnsOk()
     {
         // Arrange: Set admin authentication
         TestAuthHelper.SetAdminToken(_client);
@@ -70,7 +70,7 @@ public class ReportsControllerTests : IClassFixture<TestApplicationFactory>
     /// - The reporting service is correctly integrated
     
     [Fact]
-    public async Task CustomerSummary_WithAdminToken_ReturnsData()
+    public async Task REP004_CustomerSummary_WithAdminToken_ReturnsData()
     {
         // Arrange: Set admin authentication
         TestAuthHelper.SetAdminToken(_client);
@@ -106,7 +106,7 @@ public class ReportsControllerTests : IClassFixture<TestApplicationFactory>
     /// - Security best practices are followed
     
     [Fact]
-    public async Task CustomerSummary_WithoutToken_ReturnsUnauthorized()
+    public async Task REP005_CustomerSummary_WithoutToken_ReturnsUnauthorized()
     {
         // Arrange: No authentication token is set
 

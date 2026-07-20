@@ -5,6 +5,8 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IsTestProject>true</IsTestProject>
+		<BaseOutputPath>C:\Users\KingBoo\Downloads\C#</BaseOutputPath>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -39,7 +39,7 @@ public class RequestIdMiddlewareTests : IClassFixture<CustomWebApplicationFactor
         TestAuthHelper.SetAdminToken(_client);
     }
 
-    
+
     /// LOG-006: Verifies that the Request ID middleware generates and returns
     /// a valid X-Request-ID header for each request.
     /// 
@@ -60,8 +60,8 @@ public class RequestIdMiddlewareTests : IClassFixture<CustomWebApplicationFactor
     /// - Helps trace requests through the system
     /// - Aids in debugging and troubleshooting
     /// - Provides end-to-end request tracking
-    
-    [Fact(DisplayName = "LOG-006 Request ID header is returned and valid")]
+    [Fact]
+   // [Fact(DisplayName = "LOG-006 Request ID header is returned and valid")]
     public async Task LOG_006_RequestIdHeader_Returned()
     {
         // Act: Send a request to any endpoint

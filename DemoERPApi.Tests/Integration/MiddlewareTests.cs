@@ -43,7 +43,7 @@ public class MiddlewareTests : IClassFixture<WebApplicationFactory<Program>>
     /// - The [Authorize] attribute is being enforced
     
     [Fact]
-    public async Task MissingJwt_Returns401()
+    public async Task MID001_MissingJwt_Returns401()
     {
         // Arrange: Create an unauthenticated client
         var client = _factory.CreateClient();
@@ -71,7 +71,7 @@ public class MiddlewareTests : IClassFixture<WebApplicationFactory<Program>>
     /// - The application returns consistent 404 responses
     
     [Fact]
-    public async Task UnknownRoute_Returns404()
+    public async Task MID002_UnknownRoute_Returns404()
     {
         // Arrange: Create a test client
         var client = _factory.CreateClient();

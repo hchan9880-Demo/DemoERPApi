@@ -168,7 +168,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 401 Unauthorized
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsUnauthorized_WhenJwtInvalid()
+    public async Task SYNC_004_SyncCustomer_ReturnsUnauthorized_WhenJwtInvalid()
     {
         TestAuthHelper.SetInvalidToken(_client);
 
@@ -186,10 +186,10 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
     // =====================================================
-    // SYNC-015: Sync duplicate against soft-deleted customer
+    // SYNC-005: Sync duplicate against soft-deleted customer
     // =====================================================
     [Fact]
-    public async Task SYNC_015_SyncDuplicateAgainstSoftDeletedCustomer_HandlesCorrectly()
+    public async Task SYNC_005_SyncDuplicateAgainstSoftDeletedCustomer_HandlesCorrectly()
     {
         TestAuthHelper.SetAdminToken(_client);
         var testId = "CRM_SOFT_DEL_15";
@@ -238,10 +238,10 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // BASELINE SECURITY & VALIDATION PATHS
+    // BASELINE SECURITY & VALIDATION PATHS 
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsOk_WhenAuthorizedUserCreatesValidCustomer()
+    public async Task SYNC_006_SyncCustomer_ReturnsOk_WhenAuthorizedUserCreatesValidCustomer()
     {
         await _db.DeleteCustomer(TEST_ID_2);
         TestAuthHelper.SetOwnerToken(_client);
@@ -261,7 +261,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task SyncCustomer_ReturnsForbidden_WhenUnauthorizedRoleCreatesCustomer()
+    public async Task SYNC_007_SyncCustomer_ReturnsForbidden_WhenUnauthorizedRoleCreatesCustomer()
     {
         TestAuthHelper.SetUnauthorizedUserToken(_client);
 
@@ -279,7 +279,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
     // =====================================================
-    // VALIDATION-SYNC-001: Missing Customer ID
+    // VALIDATION-SYNC-008: Missing Customer ID
     //
     // Workflow:
     // JWT valid
@@ -293,7 +293,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsUnauthorized_WhenJwtMissing()
+    public async Task SYNC_008_SyncCustomer_ReturnsUnauthorized_WhenJwtMissing()
     {
         TestAuthHelper.ClearToken(_client);
 
@@ -312,7 +312,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // VALIDATION-SYNC-002: Missing First Name
+    // VALIDATION-SYNC-009: Missing First Name
     //
     // Workflow:
     // JWT valid
@@ -326,7 +326,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenFirstNameIsMissing()
+    public async Task SYNC_009_SyncCustomer_ReturnsBadRequest_WhenFirstNameIsMissing()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -346,7 +346,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
 
 
     // =====================================================
-    // VALIDATION-SYNC-003: Missing Email
+    // VALIDATION-SYNC-010: Missing Email
     //
     // Workflow:
     // JWT valid
@@ -360,7 +360,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenEmailIsMissing()
+    public async Task SYNC_010_SyncCustomer_ReturnsBadRequest_WhenEmailIsMissing()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -379,7 +379,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // VALIDATION-SYNC-004: Invalid Email Format
+    // VALIDATION-SYNC-011: Invalid Email Format
     //
     // Workflow:
     // JWT valid
@@ -393,7 +393,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenEmailIsInvalid()
+    public async Task SYNC_011_SyncCustomer_ReturnsBadRequest_WhenEmailIsInvalid()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -412,7 +412,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // VALIDATION-SYNC-005: Invalid Phone Number
+    // VALIDATION-SYNC-012: Invalid Phone Number
     //
     // Workflow:
     // JWT valid
@@ -426,7 +426,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
+    public async Task SYNC_012_SyncCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -445,7 +445,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // VALIDATION-SYNC-006: Missing Phone Number
+    // VALIDATION-SYNC-013: Missing Phone Number
     //
     // Workflow:
     // JWT valid
@@ -459,7 +459,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenPhoneIsNull()
+    public async Task SYNC_013_SyncCustomer_ReturnsBadRequest_WhenPhoneIsNull()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -478,7 +478,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // VALIDATION-SYNC-007: Invalid JSON Payload
+    // VALIDATION-SYNC-014: Invalid JSON Payload
     //
     // Workflow:
     // JWT valid
@@ -492,7 +492,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenJsonIsInvalid()
+    public async Task SYNC_014_SyncCustomer_ReturnsBadRequest_WhenJsonIsInvalid()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -512,7 +512,7 @@ public class CustomerSyncTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
     [Fact]
-    public async Task SyncCustomer_ReturnsBadRequest_WhenCustomerIDIsMissing()
+    public async Task SYNC_015_SyncCustomer_ReturnsBadRequest_WhenCustomerIDIsMissing()
     {
         TestAuthHelper.SetAdminToken(_client);
 

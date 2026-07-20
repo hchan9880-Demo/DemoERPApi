@@ -143,7 +143,7 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
 
     #region Audit CRUD Tests
 
-    
+
     /// AUDIT001: Verifies that creating a customer generates a CREATE audit record.
     /// 
     /// Workflow:
@@ -151,8 +151,8 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
     /// 2. Query the audit logs for the created customer
     /// 3. Verify audit record exists with Action = CREATE
     /// 4. Verify audit metadata is populated (ChangedBy, RequestId)
-    
-    [Fact(DisplayName = "AUDIT001 POST Customer creates audit record")]
+    [Fact]
+    //[Fact(DisplayName = "AUDIT001 POST Customer creates audit record")]
     public async Task AUDIT001_PostCustomer_CreatesAuditRecord()
     {
         // Arrange: Generate unique customer ID
@@ -184,7 +184,7 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
         Assert.False(string.IsNullOrWhiteSpace(audit.RequestId));
     }
 
-    
+
     /// AUDIT002: Verifies that updating a customer stores both old and new values.
     /// 
     /// Workflow:
@@ -192,8 +192,8 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
     /// 2. Update the customer with new values
     /// 3. Query the audit logs for the UPDATE record
     /// 4. Verify both OldValues and NewValues are populated
-    
-    [Fact(DisplayName = "AUDIT002 Update Customer stores old and new values")]
+    [Fact]
+   // [Fact(DisplayName = "AUDIT002 Update Customer stores old and new values")]
     public async Task AUDIT002_UpdateCustomer_StoresOldAndNewValues()
     {
         // Arrange: Create customer first
@@ -227,7 +227,7 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
         Assert.False(string.IsNullOrWhiteSpace(audit.NewValues));
     }
 
-    
+
     /// AUDIT003: Verifies that deleting a customer generates a DELETE audit record.
     /// 
     /// Workflow:
@@ -235,8 +235,8 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
     /// 2. Delete the customer
     /// 3. Query the audit logs for the DELETE record
     /// 4. Verify audit record exists with Action = DELETE
-    
-    [Fact(DisplayName = "AUDIT003 Delete Customer creates delete audit")]
+    [Fact]
+  //  [Fact(DisplayName = "AUDIT003 Delete Customer creates delete audit")]
     public async Task AUDIT003_DeleteCustomer_CreatesDeleteAudit()
     {
         // Arrange: Create customer
@@ -261,15 +261,16 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
 
     #region Authorization Tests
 
-    
+
     /// AUDIT004: Verifies that unauthorized users cannot access audit endpoints.
     /// 
     /// Workflow:
     /// 1. Create a new client without authentication
     /// 2. Attempt to access /api/AuditLogs
     /// 3. Verify request is rejected with 401 Unauthorized
-    
-    [Fact(DisplayName = "AUDIT004 Unauthorized user cannot access audit endpoint")]
+
+    [Fact]
+   // [Fact(DisplayName = "AUDIT004 Unauthorized user cannot access audit endpoint")]
     public async Task AUDIT004_UnauthorizedUser_CannotAccessAuditEndpoint()
     {
         // Arrange: Create unauthenticated client
@@ -282,15 +283,15 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    
+
     /// AUDIT008: Verifies that admin users can view audit logs.
     /// 
     /// Workflow:
     /// 1. Set admin authentication token
     /// 2. Request the audit logs endpoint
     /// 3. Verify access is granted (200 OK)
-    
-    [Fact(DisplayName = "AUDIT008 Admin can view audit logs")]
+    [Fact]
+   // [Fact(DisplayName = "AUDIT008 Admin can view audit logs")]
     public async Task AUDIT008_AdminCanViewAuditLogs()
     {
         // Act: Admin requests audit logs
@@ -304,15 +305,15 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
 
     #region Audit Metadata Tests
 
-    
+
     /// AUDIT005: Verifies that audit records include a valid timestamp.
     /// 
     /// Workflow:
     /// 1. Retrieve any audit record from the database
     /// 2. Verify the ChangedDate property exists and is valid
     /// 3. Ensure timestamp is greater than DateTime.MinValue
-    
-    [Fact(DisplayName = "AUDIT005 Audit timestamp exists")]
+    [Fact]
+   // [Fact(DisplayName = "AUDIT005 Audit timestamp exists")]
     public async Task AUDIT005_AuditTimestampExists()
     {
         // Arrange: Get database context
@@ -326,15 +327,15 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
         Assert.True(audit.ChangedDate > DateTime.MinValue);
     }
 
-    
+
     /// AUDIT006: Verifies that audit records track who made the change.
     /// 
     /// Workflow:
     /// 1. Retrieve any audit record from the database
     /// 2. Verify the ChangedBy property is populated
     /// 3. Ensure username is not empty
-    
-    [Fact(DisplayName = "AUDIT006 ChangedBy is populated")]
+    [Fact]
+   // [Fact(DisplayName = "AUDIT006 ChangedBy is populated")]
     public async Task AUDIT006_ChangedByIsPopulated()
     {
         // Arrange: Get database context
@@ -348,15 +349,15 @@ public class AuditTests : IClassFixture<CustomWebApplicationFactory>
         Assert.False(string.IsNullOrWhiteSpace(audit.ChangedBy));
     }
 
-    
+
     /// AUDIT007: Verifies that audit records include request correlation IDs.
     /// 
     /// Workflow:
     /// 1. Retrieve any audit record from the database
     /// 2. Verify the RequestId property is populated
     /// 3. Ensure RequestId is not empty
-    
-    [Fact(DisplayName = "AUDIT007 RequestId stored")]
+    [Fact]
+ //   [Fact(DisplayName = "AUDIT007 RequestId stored")]
     public async Task AUDIT007_RequestIdStored()
     {
         // Arrange: Get database context

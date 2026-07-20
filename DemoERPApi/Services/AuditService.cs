@@ -39,9 +39,9 @@ AuditLogs Table
 */
 
 
-
+/// <summary>
 /// Audit service for logging CREATE, UPDATE, DELETE operations.
-
+/// </summary>
 using DemoERPApi.Data;
 using DemoERPApi.Models;
 using System.Text.Json;

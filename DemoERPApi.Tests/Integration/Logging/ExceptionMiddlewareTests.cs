@@ -38,7 +38,7 @@ public class ExceptionMiddlewareTests : IClassFixture<CustomWebApplicationFactor
 
     #region Exception Handling Tests
 
-    
+
     /// LOG-004: Verifies that unhandled exceptions return HTTP 500 Internal Server Error.
     /// 
     /// Workflow:
@@ -51,8 +51,8 @@ public class ExceptionMiddlewareTests : IClassFixture<CustomWebApplicationFactor
     /// - Unhandled exceptions are caught and handled gracefully
     /// - The application returns appropriate error responses
     /// - No raw exception details are exposed to the client
-    
-    [Fact(DisplayName = "LOG-004 Unhandled exception returns 500")]
+    [Fact]
+   // [Fact(DisplayName = "LOG-004 Unhandled exception returns 500")]
     public async Task LOG_004_UnhandledException_Returns500()
     {
         // Act: Call endpoint that throws an exception
@@ -62,7 +62,7 @@ public class ExceptionMiddlewareTests : IClassFixture<CustomWebApplicationFactor
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
-    
+
     /// LOG-005: Verifies that exception responses follow RFC7807 Problem Details format.
     /// 
     /// Workflow:
@@ -76,8 +76,8 @@ public class ExceptionMiddlewareTests : IClassFixture<CustomWebApplicationFactor
     /// - Problem Details structure is consistently returned
     /// - Status code is correctly set in the response
     /// - Client can parse the error response programmatically
-    
-    [Fact(DisplayName = "LOG-005 Exception middleware returns Problem Details")]
+    [Fact]
+   // [Fact(DisplayName = "LOG-005 Exception middleware returns Problem Details")]
     public async Task LOG_005_ExceptionMiddleware_ReturnsProblemDetails()
     {
         // Act: Call endpoint that throws an exception

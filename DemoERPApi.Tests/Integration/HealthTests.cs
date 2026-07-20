@@ -38,7 +38,7 @@ public class HealthTests : IClassFixture<WebApplicationFactory<Program>>
     /// - The service is ready to accept requests
     
     [Fact]
-    public async Task Health_ReturnsHealthy()
+    public async Task HLTH001_Health_ReturnsHealthy()
     {
         // Arrange: Create a test client for the API
         var client = _factory.CreateClient();

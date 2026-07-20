@@ -16,7 +16,7 @@ UPDATE-005	Admin updates non-existent customer	        Valid payload with unknow
 UPDATE-006	QA updates assigned customer	            Valid update payload
 UPDATE-007	QA updates non-existent assigned customer	Valid payload
 UPDATE-008	Customer updates non-existent own record	Valid payload
-UPDATE-019	Update deleted customer	                    Valid update payload for deleted customer
+UPDATE-009	Update deleted customer	                    Valid update payload for deleted customer
 */
 
 public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
@@ -274,7 +274,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 404 NotFound
     // =====================================================
     [Fact]
-    public async Task UPDATE_019_UpdateDeletedCustomer_ReturnsNotFoundOrBadRequest()
+    public async Task UPDATE_009_UpdateDeletedCustomer_ReturnsNotFoundOrBadRequest()
     {
         TestAuthHelper.SetAdminToken(_client);
         var testId = "CRM_UPD_019";
@@ -318,7 +318,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 200 OK
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsOk_WhenOwnerUpdatesOwnCustomer()
+    public async Task UPDATE_010_UpdateCustomer_ReturnsOk_WhenOwnerUpdatesOwnCustomer()
     {
         TestAuthHelper.SetOwnerToken(_client);
 
@@ -350,7 +350,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 403 Forbidden
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsForbidden_WhenOwnerUpdatesAnotherUsersCustomer()
+    public async Task UPDATE_011_UpdateCustomer_ReturnsForbidden_WhenOwnerUpdatesAnotherUsersCustomer()
     {
         TestAuthHelper.SetOwnerToken(_client);
 
@@ -382,7 +382,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 404 NotFound
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsNotFound_WhenCustomerIDIsMissing()
+    public async Task UPDATE_012_UpdateCustomer_ReturnsNotFound_WhenCustomerIDIsMissing()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -414,7 +414,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsBadRequest_WhenFirstNameIsMissing()
+    public async Task UPDATE_013_UpdateCustomer_ReturnsBadRequest_WhenFirstNameIsMissing()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -446,7 +446,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailIsMissing()
+    public async Task UPDATE_014_UpdateCustomer_ReturnsBadRequest_WhenEmailIsMissing()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -478,7 +478,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
+    public async Task UPDATE_015_UpdateCustomer_ReturnsBadRequest_WhenEmailFormatIsInvalid()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -497,7 +497,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task UpdateCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
+    public async Task UPDATE_016_UpdateCustomer_ReturnsBadRequest_WhenPhoneIsInvalid()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -529,7 +529,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 400 BadRequest
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsBadRequest_WhenPhoneIsNull()
+    public async Task UPDATE_017_UpdateCustomer_ReturnsBadRequest_WhenPhoneIsNull()
     {
         TestAuthHelper.SetAdminToken(_client);
 
@@ -557,7 +557,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 401 Unauthorized
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsUnauthorized_WhenJwtMissing()
+    public async Task UPDATE_018_UpdateCustomer_ReturnsUnauthorized_WhenJwtMissing()
     {
         TestAuthHelper.ClearToken(_client);
 
@@ -587,7 +587,7 @@ public class CustomerUpdateTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 401 Unauthorized
     // =====================================================
     [Fact]
-    public async Task UpdateCustomer_ReturnsUnauthorized_WhenJwtInvalid()
+    public async Task UPDATE_019_UpdateCustomer_ReturnsUnauthorized_WhenJwtInvalid()
     {
         TestAuthHelper.SetInvalidToken(_client);
 

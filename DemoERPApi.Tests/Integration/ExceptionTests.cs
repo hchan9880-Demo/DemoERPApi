@@ -53,7 +53,7 @@ namespace DemoERPApi.Tests.Integration
         // EX-001 ValidationException
         // =====================================================
         [Fact]
-        public async Task CreateCustomer_InvalidEmail_ReturnsBadRequest()
+        public async Task EX_001_CreateCustomer_InvalidEmail_ReturnsBadRequest()
         {
             TestAuthHelper.SetValidToken(_client);
 
@@ -77,7 +77,7 @@ namespace DemoERPApi.Tests.Integration
         // EX-002 BusinessException
         // =====================================================
         [Fact]
-        public async Task CreateDuplicateCustomer_ReturnsConflict()
+        public async Task EX_002_CreateDuplicateCustomer_ReturnsConflict()
         {
             TestAuthHelper.SetValidToken(_client);
 
@@ -101,7 +101,7 @@ namespace DemoERPApi.Tests.Integration
         // EX-003 UnauthorizedException
         // =====================================================
         [Fact]
-        public async Task NoToken_ReturnsUnauthorized()
+        public async Task EX_003_NoToken_ReturnsUnauthorized()
         {
             using var client = new WebApplicationFactory<Program>()
                 .CreateClient();
@@ -115,7 +115,7 @@ namespace DemoERPApi.Tests.Integration
         // EX-004 NotFoundException
         // =====================================================
         [Fact]
-        public async Task InvalidCustomer_Returns404()
+        public async Task EX_004_InvalidCustomer_Returns404()
         {
             TestAuthHelper.SetValidToken(_client);
 
@@ -129,9 +129,9 @@ namespace DemoERPApi.Tests.Integration
         // =====================================================
         // Uncomment this test only after adding an endpoint that
         // intentionally throws an unhandled exception.
-      
+
         [Fact]
-        public async Task UnhandledException_ReturnsNotFound()
+        public async Task EX_005_UnhandledException_ReturnsNotFound()
         {
             TestAuthHelper.SetValidToken(_client);
 
@@ -139,6 +139,6 @@ namespace DemoERPApi.Tests.Integration
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
- 
+
     }
 }

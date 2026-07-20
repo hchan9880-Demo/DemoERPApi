@@ -128,7 +128,7 @@ public class LoggingMiddlewareTests : IClassFixture<CustomWebApplicationFactory>
 
     #region Logging Tests
 
-    
+
     /// LOG-001: Verifies that successfully creating a customer returns 200 OK
     /// and writes an Information level log.
     /// 
@@ -142,8 +142,9 @@ public class LoggingMiddlewareTests : IClassFixture<CustomWebApplicationFactory>
     /// - Information level logs are generated for successful operations
     /// - The logging middleware captures successful requests
     /// - Customer creation completes successfully
-    
-    [Fact(DisplayName = "LOG-001 Customer successfully created returns OK")]
+
+    [Fact]
+    //[Fact(DisplayName = "LOG-001 Customer successfully created returns OK")]
     public async Task LOG_001_CustomerSuccessfullyCreated_ReturnsOk()
     {
         // Arrange: Create a unique customer ID with timestamp
@@ -169,7 +170,7 @@ public class LoggingMiddlewareTests : IClassFixture<CustomWebApplicationFactory>
         // - User information is included
     }
 
-    
+
     /// LOG-002: Verifies that submitting a duplicate customer returns 409 Conflict
     /// and writes a Warning level log.
     /// 
@@ -184,8 +185,8 @@ public class LoggingMiddlewareTests : IClassFixture<CustomWebApplicationFactory>
     /// - Conflict responses are properly logged
     /// - Warning level logs are generated for duplicates
     /// - The logging middleware captures business rule violations
-    
-    [Fact(DisplayName = "LOG-002 Duplicate customer returns Conflict")]
+    [Fact]
+    //[Fact(DisplayName = "LOG-002 Duplicate customer returns Conflict")]
     public async Task LOG_002_DuplicateCustomer_ReturnsConflict()
     {
         // Arrange: Create customer request with fixed ID
@@ -215,7 +216,7 @@ public class LoggingMiddlewareTests : IClassFixture<CustomWebApplicationFactory>
         // - Request ID is included
     }
 
-    
+
     /// LOG-003: Verifies that invalid customer payloads return 400 BadRequest
     /// and writes a Warning level log.
     /// 
@@ -229,8 +230,8 @@ public class LoggingMiddlewareTests : IClassFixture<CustomWebApplicationFactory>
     /// - Validation errors are properly logged
     /// - Warning level logs are generated for validation failures
     /// - The logging middleware captures validation errors
-    
-    [Fact(DisplayName = "LOG-003 Invalid payload returns BadRequest")]
+    [Fact]
+   // [Fact(DisplayName = "LOG-003 Invalid payload returns BadRequest")]
     public async Task LOG_003_InvalidPayload_ReturnsBadRequest()
     {
         // Arrange: Create invalid request

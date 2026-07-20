@@ -331,7 +331,7 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 401 Unauthorized
     // =====================================================
     [Fact]
-    public async Task DeleteCustomer_ReturnsUnauthorized_WhenJwtMissing()
+    public async Task DELETE_011_DeleteCustomer_ReturnsUnauthorized_WhenJwtMissing()
     {
         TestAuthHelper.ClearToken(_client);
 
@@ -352,7 +352,7 @@ public class CustomerDeleteTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 401 Unauthorized
     // =====================================================
     [Fact]
-    public async Task DeleteCustomer_ReturnsUnauthorized_WhenJwtInvalid()
+    public async Task DELETE_012_DeleteCustomer_ReturnsUnauthorized_WhenJwtInvalid()
     {
         TestAuthHelper.SetInvalidToken(_client);
 

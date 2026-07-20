@@ -107,7 +107,7 @@ public class ReportingServiceTests
     /// - The service correctly applies the IsDeleted filter
     
     [Fact]
-    public async Task GetCustomerSummary_ShouldReturnCorrectCounts()
+    public async Task REP006_GetCustomerSummary_ShouldReturnCorrectCounts()
     {
         // Arrange: Create the service with seeded data
         var service = CreateReportingService();

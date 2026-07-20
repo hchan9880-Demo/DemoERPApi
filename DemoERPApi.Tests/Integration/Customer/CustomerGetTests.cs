@@ -16,7 +16,7 @@ GET-004	QA retrieves assigned customer	            GET assigned customer id
 GET-005	QA requests invalid customer id	            GET invalid id
 GET-006	QA requests non-existent assigned id	    GET unknown id
 GET-007	Customer requests invalid customer id	    GET invalid id
-GET-017	Request deleted customer record	            GET deleted customer id
+GET-008	Request deleted customer record	            GET deleted customer id
 */
 
 public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
@@ -207,7 +207,7 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     // =====================================================
-    // GET-017: Request deleted customer record
+    // GET-008: Request deleted customer record
     //
     // Workflow:
     // JWT valid
@@ -225,10 +225,10 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 404 NotFound
     // =====================================================
     [Fact]
-    public async Task GET_017_RequestDeletedCustomerRecord_ReturnsNotFound()
+    public async Task GET_008_RequestDeletedCustomerRecord_ReturnsNotFound()
     {
         TestAuthHelper.SetAdminToken(_client);
-        var testId = "GET_TEST_017";
+        var testId = "GET_TEST_008";
         await CustomerSeedHelper.SeedCustomer(_client, testId);
 
         // Perform Soft Delete via the API to flag the record
@@ -241,37 +241,12 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+
+
     // =====================================================
     // BASELINE SECURITY PATHS
     // =====================================================
-
-
-    // =====================================================
-    // SECURITY-GET-001: Customer retrieves own record
-    //
-    // Workflow:
-    // JWT valid
-    //      ↓
-    // Role = Customer
-    //      ↓
-    // Requested customer is owner?
-    //      ↓ Yes
-    // Retrieve customer
-    //      ↓
-    // Return 200 OK
-    // =====================================================
-    [Fact]
-    public async Task GetCustomer_ReturnsOk_WhenOwnerRequestsOwnCustomer()
-    {
-        TestAuthHelper.SetOwnerToken(_client);
-        var testId = TestData.OwnerCustomerID;
-
-        var response = await _client.GetAsync($"/api/Customer/{testId}");
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-    // =====================================================
-    // SECURITY-GET-002: Customer retrieves another user's record
+    // SECURITY-GET-009: Customer retrieves another user's record
     //
     // Workflow:
     // JWT valid
@@ -285,7 +260,7 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 403 Forbidden
     // =====================================================
     [Fact]
-    public async Task GetCustomer_ReturnsForbidden_WhenOwnerRequestsAnotherUsersCustomer()
+    public async Task GET_009_GetCustomer_ReturnsForbidden_WhenOwnerRequestsAnotherUsersCustomer()
     {
         TestAuthHelper.SetOwnerToken(_client);
         var testId = TestData.OtherCustomerID;
@@ -295,26 +270,31 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
     // =====================================================
-    // SECURITY-GET-003: Missing JWT token
+    // SECURITY-GET-010: Customer retrieves own record
     //
     // Workflow:
-    // JWT supplied?
-    //      ↓ No
-    // Authentication fails
+    // JWT valid
     //      ↓
-    // Return 401 Unauthorized
+    // Role = Customer
+    //      ↓
+    // Requested customer is owner?
+    //      ↓ Yes
+    // Retrieve customer
+    //      ↓
+    // Return 200 OK
     // =====================================================
     [Fact]
-    public async Task GetCustomer_ReturnsUnauthorized_WhenJwtMissing()
+    public async Task GET_010_GetCustomer_ReturnsOk_WhenOwnerRequestsOwnCustomer()
     {
-        TestAuthHelper.ClearToken(_client);
+        TestAuthHelper.SetOwnerToken(_client);
+        var testId = TestData.OwnerCustomerID;
 
-        var response = await _client.GetAsync($"/api/Customer/{TestData.ExistingCustomerID}");
+        var response = await _client.GetAsync($"/api/Customer/{testId}");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
     // =====================================================
-    // SECURITY-GET-004: Invalid JWT token
+    // SECURITY-GET-011: Invalid JWT token
     //
     // Workflow:
     // JWT supplied
@@ -326,7 +306,7 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
     // Return 401 Unauthorized
     // =====================================================
     [Fact]
-    public async Task GetCustomer_ReturnsUnauthorized_WhenJwtInvalid()
+    public async Task GET_011_GetCustomer_ReturnsUnauthorized_WhenJwtInvalid()
     {
         TestAuthHelper.SetInvalidToken(_client);
 
@@ -334,4 +314,30 @@ public class CustomerGetTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+
+    // =====================================================
+    // SECURITY-GET-012: Missing JWT token
+    //
+    // Workflow:
+    // JWT supplied?
+    //      ↓ No
+    // Authentication fails
+    //      ↓
+    // Return 401 Unauthorized
+    // =====================================================
+    [Fact]
+    public async Task GET_012_GetCustomer_ReturnsUnauthorized_WhenJwtMissing()
+    {
+        TestAuthHelper.ClearToken(_client);
+
+        var response = await _client.GetAsync($"/api/Customer/{TestData.ExistingCustomerID}");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+
+
+
+
 }
